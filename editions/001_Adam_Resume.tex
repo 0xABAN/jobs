@@ -35,9 +35,9 @@
 \renewcommand{\footrulewidth}{0pt}
 
 % Adjust margins
-\addtolength{\oddsidemargin}{-0.5in}
-\addtolength{\evensidemargin}{-0.5in}
-\addtolength{\textwidth}{1in}
+\addtolength{\oddsidemargin}{-0.75in}
+\addtolength{\evensidemargin}{-0.75in}
+\addtolength{\textwidth}{1.5in}
 \addtolength{\topmargin}{-.5in}
 \addtolength{\textheight}{1.0in}
 
@@ -172,25 +172,17 @@
   }
   {}
   \resumeItemListStart
-    \resumeItem{
-        Launched NPC agents mod for Terraria with 10+ tools supported, winning \$8k in xAI credits out of 600+ entrants
-    }
-    \resumeItem{
-      Engineered ReAct loop in C\# on grok-4-fast for real-time agentic reasoning, scaling to 50+ parallel agents
-    }
+    \resumeItem{Created an agentic NPC mod for Terraria using tModLoader with a ReAct-style reasoning loop via Grok-4-Fast, supporting 10+ tools across 50+ parallel agents, winning \$8K in xAI credits (800+ participants)}
+    \resumeItem{Engineered a C\# agentic framework with async inference bindings, schema-validated action registry, and automatic replanning on 90-second timeouts}
   \resumeItemListEnd
      \resumeProjectHeading
   {\textbf{\href{https://github.com/AdamPSU/simulacra}{\underline{simulacra}} (YHack '26 K2 Think V2 1st place winner)}
   $|$
-  \emph{Next.js, Phaser, FastAPI, LangGraph, Socket.IO}
+  \emph{Python, FastAPI, LangGraph, Socket.IO}
   }{}
   \resumeItemListStart
-    \resumeItem{
-        Won \$500 K2 Think V2 track for a pixel-art policy sim streaming 100 LLM agents across 15 rounds over Socket.IO
-    }
-    \resumeItem{
-      Built LangGraph pipeline injecting 6-trait personas across 8 roles, fanning out parallel LLM reactions via asyncio
-    }
+    \resumeItem{Designed a FastAPI + LangGraph StateGraph engine with asyncio cognitive loops, shared memory streams, and Pydantic-validated outputs for 100 LLM agents across 15 rounds}
+    \resumeItem{Built per-agent memory with temporal decay, threshold-triggered reflection, and Deffuant opinion dynamics modeling echo chambers across 8 roles with 6-trait personas over Socket.IO}
   \resumeItemListEnd
     \resumeProjectHeading
   {\textbf{\href{https://github.com/AdamPSU/maestro}{\underline{nexdraw}} (NexHacks '26 ByteDance 2nd place winner)}
@@ -206,26 +198,6 @@
     Engineered Supabase auto-save (2s debounce, offline-aware) persisting JSONB + per-board PNG previews
     }
   \resumeItemListEnd
-    \resumeProjectHeading
-  {\textbf{\href{https://github.com/AdamPSU/ForMula}{\underline{formula}}}
-  $|$
-  \emph{Python, FastAPI, Next.js, LangGraph, Cohere, Grok-4-fast, Supabase, Firecrawl}
-  }
-  {}
-  \resumeItemListStart
-    \resumeItem{
-    Built E2E haircare matcher ranking products by INCI ingredient fit after spending \$300+ on biased marketing
-    }
-    \resumeItem{
-    Hand-built agentic Firecrawl + Claude Code harness scraping 250 brands, 6,500 products, and 9,000 unique INCI
-    }
-    \resumeItem{
-    Reranked up to 2,000 candidates into top-100 with Cohere Rerank 4 over YAML fit docs tied to user HairProfile
-    }
-    \resumeItem{
-    Validated finalists via TourRank tournament (R=5 brackets, Grok reasoning) across 3-axis aesthetician rubric
-    }
-  \resumeItemListEnd
     \resumeSubHeadingListEnd
 
 %-----------PROGRAMMING SKILLS-----------
@@ -236,7 +208,7 @@
      \textbf{Frameworks:}{ PyTorch, Huggingface, Pandas, NumPy, FastAPI, React, Node.js, Next.js, LangChain/LangGraph} \\
      \textbf{Developer Tools:}{ Git, Linux, Vim/Neovim, VS Code, Cmux (agent multiplexer), Claude Code, Agile/Scrum, Pytest} \\
      \textbf{Databases:}{ PostgreSQL, MySQL, SQLite, Redis, MongoDB} \\
-     \textbf{Cloud/Infra:}{ AWS (Lambda, S3, EC2, Bedrock, RDS, DynamoDB), Azure (Blob, Foundry, Function Apps), Vercel, Docker, CI/CD, Supabase}
+     \textbf{Cloud/Infra:}{ AWS (Lambda, S3, EC2, Bedrock, DynamoDB), Azure, Vercel, Docker, CI/CD, Supabase}
     }}
  \end{itemize}
 
