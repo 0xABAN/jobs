@@ -9,4 +9,6 @@
 !src/resume/*.pdf
 
 .env
+.mcp.json
+.mcp-google-sheets-token.json
 .mcp/
