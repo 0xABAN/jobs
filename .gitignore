@@ -6,4 +6,7 @@
 *.fls
 *.fdb_latexmk
 *.pdf
-!editions/*.pdf
+!src/resume/*.pdf
+
+.env
+.mcp/
