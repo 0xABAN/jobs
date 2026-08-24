@@ -17,7 +17,7 @@ OpenAPI: https://data.fantastic.jobs/openapi
 
 `GET https://data.fantastic.jobs/v1/active-ats`
 
-Source the key from `.env`. Write the body to `/tmp`, not this repo. Print a table + `x-api-*` headers. Do not paginate unless asked.
+Source the key from `.env`. Write the body to `/tmp`, not this repo. Print a table. Do not paginate unless asked.
 
 ```
 Authorization: Bearer $FANTASTIC_JOBS_API_KEY
@@ -29,30 +29,15 @@ ai_employment_type=FULL_TIME
 ai_experience_level=0-2,2-5
 organization_agency=exclude
 exclude_organization=Speechify
-organization_advanced=<join src/prompts/orgs.txt with " | "; single-quote names that contain space or ->
+organization_advanced=<from src/core/orgs.txt; single-quote names with space or -. Whole request must stay under 10k chars, so do not dump the full 2000-name file into one call>
 ```
-
-Each returned job burns 1 Jobs credit. Each call burns 1 API Request.
 
 `title` is Google-style. A trailing `-Manager` after `OR` phrases only binds to the last clause. Use `title_advanced` for grouped exclusions.
 
 Location needs full names (`United States`, not `US`). Quoted `"City, State, United States"`. Phoenix can leak; ignore it.
 
-## Credits
-
-Trial was 500 jobs / 50 requests. Headers after each call:
-
-- `x-api-jobs-this-request` / `x-api-jobs-remaining` / `x-api-jobs-limit`
-- `x-api-requests-remaining` / `x-api-requests-limit`
-
-`remaining` headers can lag a few seconds. Trust `x-api-jobs-this-request`.
-
 ## Company set
 
-`src/prompts/orgs.txt`: Nasdaq-100 tech + Cloud 100 names + VGT extras + magnets/aliases (Uber, LinkedIn, GitHub, trading firms, labs, defense/robots). Not Fortune 500. Not the full unicorn dump (too big for one request; 10k char cap).
+`src/core/orgs.txt`: Nasdaq-100 tech + Cloud 100 + VGT extras + magnets/aliases + Crunchbase unicorns.
 
 Feed is newest-first. Google/Apple will dominate a 25-row page. `exclude_organization=Google,Apple` if the user wants the tail.
-
-## Out of scope
-
-Fill / apply / Jobright / ApplyPilot / sheets. Discovery only.
