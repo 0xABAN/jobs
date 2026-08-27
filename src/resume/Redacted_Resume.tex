@@ -1,0 +1,228 @@
+\documentclass[letterpaper,11pt]{article}
+
+\usepackage{latexsym}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fontawesome5}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\ifdefined\pdfgentounicode
+  \input{glyphtounicode}
+\fi
+
+
+%----------FONT OPTIONS----------
+% sans-serif
+\usepackage[sfdefault]{FiraSans}
+% \usepackage[sfdefault]{roboto}
+% \usepackage[sfdefault]{noto-sans}
+% \usepackage[default]{sourcesanspro}
+
+% serif
+% \usepackage{CormorantGaramond}
+% \usepackage{charter}
+
+
+\pagestyle{fancy}
+\fancyhf{} % clear all header and footer fields
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Adjust margins
+\addtolength{\oddsidemargin}{-0.75in}
+\addtolength{\evensidemargin}{-0.75in}
+\addtolength{\textwidth}{1.5in}
+\addtolength{\topmargin}{-.5in}
+\addtolength{\textheight}{1.0in}
+
+\urlstyle{same}
+
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Sections formatting
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+
+% Ensure that generate pdf is machine readable/ATS parsable
+\ifdefined\pdfgentounicode
+  \pdfgentounicode=1
+\fi
+
+%-------------------------
+% Custom commands
+\newcommand{\resumeItem}[1]{
+  \item\small{
+    {#1 \vspace{-4pt}}
+  }
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \item
+    \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubSubheading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \textit{\small#1} & \textit{\small #2} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      #1 & #2 \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubItem}[1]{\resumeItem{#1}\vspace{-4pt}}
+
+\renewcommand\labelitemii{$\vcenter{\hbox{\tiny$\bullet$}}$}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.15in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-6pt}}
+
+
+%-------------------------------------------
+%%%%%%  RESUME STARTS HERE  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{document}
+
+%----------HEADING----------
+\begin{center}
+    \textbf{\Huge \scshape [Name]} \\ \vspace{1pt}
+    \small [City, ST] $|$ Email \faEnvelope $|$
+    LinkedIn \faLinkedin $|$
+    GitHub \faGithub $|$
+    Portfolio \raisebox{-0.12em}{\scalebox{1.45}{$\blacktriangle$}}
+\end{center}
+
+
+%-----------EDUCATION-----------
+\section{\textbf{EDUCATION}}
+  \resumeSubHeadingListStart
+    \resumeSubheading
+    {The Pennsylvania State University}{\textbf{\textit{Expected:}} May 2027}
+      {B.S. in Data Science, B.S. in Statistics}{\textbf{\textit{GPA:}} 3.7}
+  \resumeSubHeadingListEnd
+
+%-----------WORK EXPERIENCE-----------
+\section{\textbf{WORK EXPERIENCE}}
+  \resumeSubHeadingListStart
+  \resumeSubheading
+      {Amazon}{May 2026 -- Aug 2026}
+      {Software Engineering Intern}{Cupertino, CA}
+      \resumeItemListStart
+        \resumeItem{Designed C++ infrastructure for a dual-arm fiber-cleaning robot targeting \$28.6M/year in savings across 85 data centers}
+        \resumeItem{Built a 19-route Coral robot control plane over SSH that kept the 1 kHz control loop server-side for remote clients}
+        \resumeItem{Centralized 100\% of robot geometry and vision labels from a 3-model LLM-as-judge pipeline in DynamoDB and S3}
+        \resumeItem{Bootstrapped a Model Context Protocol (MCP) server on SQLite compiling 74 doc sources into a cited knowledge base}
+        \resumeItem{Hardened CI/CD with 3 Brazil stages, 240+ unit tests, and content-addressed SSH releases, stopping host drift}
+      \resumeItemListEnd
+    \resumeSubheading
+      {IBM}{May 2025 -- May 2026}
+      {AI Engineering Intern}{Remote}
+      \resumeItemListStart
+        \resumeItem{Shipped a REST LLM microservice that generated documentation for 3100+ scripts and cut client costs by \$223,000}
+        \resumeItem{Refined a Python LLM file-chunking pipeline with Llama-4 and GPT-4o-mini to process 7+ large-scale internal requests}
+        \resumeItem{Deployed serverless Azure Function Apps with automatic codebase scaling, cutting the manual review workload by 78\%}
+      \resumeItemListEnd
+  \resumeSubHeadingListEnd
+
+%-----------LEADERSHIP EXPERIENCE-----------
+\section{\textbf{LEADERSHIP EXPERIENCE}}
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {Claude Builder Club}{Aug 2025 -- Jan 2026}
+      {Vice President}{University Park, PA}
+      \resumeItemListStart
+              \resumeItem{Brought Claude AI to Penn State, drawing in 260+ club signups in its first month (the fastest growth in school history)}
+              \resumeItem{Taught AI tooling (agent harnesses, skills, hooks, MCPs, multiplexers) to 170+ students, with 90\% returning for follow-ups}
+        \resumeItemListEnd
+    \resumeSubheading
+      {Nittany AI}{Jan 2025 -- Jan 2026}
+      {Director (AI)}{University Park, PA}
+      \resumeItemListStart
+              \resumeItem{Led a research reading group for the largest AI club on campus, with 40+ students per semester and 85\% retention}
+              \resumeItem{Covered papers \href{https://arxiv.org/abs/1506.02640}{\underline{YOLO}}, \href{https://arxiv.org/abs/2511.16719}{\underline{SAM3}}, \href{https://arxiv.org/abs/1706.03762}{\underline{Attention Is All You Need}}, and \href{https://arxiv.org/abs/1412.6980}{\underline{Adam Optimizer}} across 5 months of student-led seminars}
+              \resumeItem{Partnered with 3+ AI labs to host PhD panels and professor-led research demos, growing club membership by 247\%}
+      \resumeItemListEnd
+    \resumeSubHeadingListEnd
+
+%-----------PROJECTS-----------
+\section{\textbf{PROJECTS}}
+    \resumeSubHeadingListStart
+    \resumeProjectHeading
+  {\textbf{terrar.ai (HackPrinceton '25 xAI 1st place winner)}
+  $|$
+  \emph{C\#, xAI}
+  $|$
+  \underline{GitHub \faGithub}
+  }
+  {}
+  \resumeItemListStart
+    \resumeItem{Earned \$8K in xAI credits against 800+ participants for agentic Terraria NPCs that turn user words into action}
+    \resumeItem{Implemented a C\#/.NET 8 registry of 7 typed world actions, parsing one JSON ReAct step against a 20-message history}
+    \resumeItem{Ran Grok AI inference off the 60 FPS game tick via async HttpClient, with 60s request and 90s planning timeout caps}
+  \resumeItemListEnd
+     \resumeProjectHeading
+  {\textbf{simulacra (YHack '26 K2 Think V2 1st place winner)}
+  $|$
+  \emph{Python, FastAPI, LangGraph, React}
+  $|$
+  \underline{GitHub \faGithub}
+  }{}
+  \resumeItemListStart
+    \resumeItem{Won \$500 K2 Think V2 track for a pixel-art city of 100 LLM agents that react to pasted economic policy over 15 rounds}
+    \resumeItem{Parallelized each round with asyncio.gather and streamed Socket.IO events into a Next.js, React, and Phaser city}
+    \resumeItem{Scored memories as recency x importance x Jaccard, retrieving the top 8 and reflecting once importance hit 25}
+    \resumeItem{Spread neighbor opinion with Deffuant bounded confidence and Baumann polarization (keep, compromise, or adopt)}
+  \resumeItemListEnd
+    \resumeProjectHeading
+  {\textbf{nexdraw (NexHacks '26 ByteDance 2nd place winner)}
+  $|$
+  \emph{TypeScript, Next.js, Gemini, PostgreSQL}
+  $|$
+  \underline{GitHub \faGithub}
+  }
+  {}
+  \resumeItemListStart
+    \resumeItem{Placed 2nd of 1500+ solo with a tldraw canvas that auto-completes sketches in place via Gemini AI image generation}
+    \resumeItem{Classified chat vs draw with Gemini, then cropped the subject with Hugging Face Grounding DINO on CUDA (PyTorch)}
+    \resumeItem{Piped voice prompts through OpenAI Whisper and gated every generation behind an accept/reject overlay on the canvas}
+    \resumeItem{Persisted tldraw snapshots as PostgreSQL JSONB on a 2s debounce, writing PNG previews and skipping saves offline}
+  \resumeItemListEnd
+    \resumeSubHeadingListEnd
+
+%-----------PROGRAMMING SKILLS-----------
+\section{\textbf{TECHNICAL SKILLS}}
+ \begin{itemize}[leftmargin=0.15in, label={}, itemsep=-3pt, topsep=0pt]
+    \small{\item{
+     \textbf{Programming Languages:}{ Python, C++, C, C\#, SQL, TypeScript, HTML/CSS, R, Lua} \\
+     \textbf{Frameworks:}{ PyTorch, OpenCV, Hugging Face, Pandas, NumPy, FastAPI, React, Node.js, Next.js, LangChain/LangGraph} \\
+     \textbf{Developer Tools:}{ Git, Linux, Vim/Neovim, VS Code, Cmux (agent multiplexer), Pi, Agile/Scrum, Pytest} \\
+     \textbf{Databases:}{ PostgreSQL, MySQL, SQLite, Redis, MongoDB, DynamoDB} \\
+     \textbf{Cloud/Infra:}{ AWS (Lambda, S3, EC2, Bedrock, DynamoDB), Azure Functions, Vercel, Docker, CI/CD (GitHub Actions), Supabase}
+    }}
+ \end{itemize}
+
+%-------------------------------------------
+\end{document}
