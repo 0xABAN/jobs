@@ -63,6 +63,10 @@ Never treat a partial batch run as a complete organization scan. Never report a 
 
 The API `limit` is a per-request result cap, not an API-request quota. Keep the number of requests low by batching organizations; do not issue one request per organization.
 
+## Exact posting review
+
+The `active-ats` response may contain AI summaries but may not contain the verbatim job description. For every role that survives metadata triage, prefer a complete returned `description`; otherwise fetch the exact `url` with the approved web-fetch connector. Do not use local `urllib`, ad-hoc scraping, or a shell network fallback. Use bounded batches, retry only transient fetch failures with bounded backoff, and save a per-job manifest under `/tmp` with `id`, URL, fetch status, completeness status, and screening status. A role may enter ranking only after its exact requirements and responsibilities are read. Terminal statuses are `screened_in`, `screened_out`, or `inaccessible`; inaccessible roles must be omitted. Fail closed if any non-obvious-hard-fail role has no terminal status, and never shorten the shortlist merely because an unreviewed subset was easier to fetch.
+
 ## Salary screening
 
 Use $130,000 as the disclosed-salary upper-bound threshold. Remove a role only when its confidently disclosed salary range has a maximum below $130,000. A range qualifies when its maximum reaches at least $130,000. Keep roles with unlisted or ambiguous salary eligible for alignment review and report them as `Salary: not listed`; never estimate compensation.
