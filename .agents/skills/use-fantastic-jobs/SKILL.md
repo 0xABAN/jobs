@@ -16,8 +16,8 @@ Before making any API request, read all of the following:
 - this skill file
 - `/Users/adam/.codex/automations/fantastic-jobs-application-brief-8am-et/memory.md` when present
 - `/Users/adam/dev/jobs/src/core/orgs.txt`
-- `/Users/adam/dev/jobs/src/resume/Adam_Torres_Encarnacion_Resume.pdf`
-- `/Users/adam/dev/jobs/src/resume/Adam_Torres_Encarnacion_Resume.tex`
+- `/Users/adam/dev/jobs/src/resume/default/Adam_Torres_Encarnacion_Resume.pdf`
+- `/Users/adam/dev/jobs/src/resume/default/Adam_Torres_Encarnacion_Resume.tex`
 
 Do not read credential-bearing MCP files. Treat the automation memory as run context, not as a substitute for the current API pull.
 

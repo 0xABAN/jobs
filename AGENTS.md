@@ -2,7 +2,8 @@ Adam's job-application harness. Discover, then apply. Do not invent extra pipeli
 
 | What | Where |
 | --- | --- |
-| Resume | `src/resume/Adam_Torres_Encarnacion_Resume.pdf` (source `.tex`) |
+| Default resume | `src/resume/default/Adam_Torres_Encarnacion_Resume.pdf` (source `.tex`) |
+| Masters resume | `src/resume/masters/Adam_Torres_Encarnacion_Resume_Masters.pdf` (source `.tex`) |
 | Company allowlist | `src/core/orgs.txt` |
 | Apply playbook | `src/core/apply.md` |
 | Discovery skill | `.agents/skills/use-fantastic-jobs/SKILL.md` |

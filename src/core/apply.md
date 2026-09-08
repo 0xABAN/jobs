@@ -4,7 +4,7 @@ Codex computer-use only. Input: allowlisted companies.
 
 Sheet: `1ZghuMB16Qc1fIMrLCSAQkkBWDymTYGlx1_hR0RTsP_I` tab `Apps`
 
-1. Read the resume: `src/resume/Adam_Torres_Encarnacion_Resume.pdf` (source: `.tex`).
+1. Read the resume: `src/resume/default/Adam_Torres_Encarnacion_Resume.pdf` (source: `.tex`).
 2. Open the posting. Autofill with the Jobright extension.
 3. Confirm Jobright produced no errors. If it did, fix or skip.
 4. Fill **mandatory** boxes only. Run `/write` on any prose you type. Leave optional fields blank.
