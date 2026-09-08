@@ -98,7 +98,7 @@
 \newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.15in, label={}]}
 \newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
 \newcommand{\resumeItemListStart}{\begin{itemize}}
-\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-6pt}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-8pt}}
 
 
 %-------------------------------------------
@@ -113,7 +113,7 @@
     \small University Park, PA $|$ \href{mailto:art5809@psu.edu}{\underline{Email \faEnvelope}} $|$
     \href{https://www.linkedin.com/in/adam-torres-encarnacion/}{\underline{LinkedIn \faLinkedin}} $|$
     \href{https://github.com/0xABAN}{\underline{GitHub \faGithub}} $|$
-    \href{https://advm.dev/}{\underline{Portfolio \raisebox{-0.12em}{\scalebox{1.45}{$\blacktriangle$}}}}
+    \href{https://advm.dev/}{\underline{Portfolio \raisebox{-0.0625em}{\resizebox{0.875em}{0.875em}{$\blacktriangle$}}}}
 \end{center}
 
 
@@ -135,20 +135,20 @@
       {Amazon}{May 2026 -- Aug 2026}
       {Software Engineering Intern}{Cupertino, CA}
       \resumeItemListStart
-        \resumeItem{Refactored C++ infrastructure for a dual-arm fiber-cleaning robot targeting \$28.6M/year in savings across 85 data centers}
-        \resumeItem{Built a 19-route HTTP server for remote robot control over SSH, maintaining a persistent sub-2ms on-device control loop}
-        \resumeItem{Implemented a VLM-as-judge pipeline for live detection of 6 optical fibers \& transceivers, centralizing detection data in S3}
-        \resumeItem{Bootstrapped an agent-first, self-evolving FastMCP knowledge base \& migrated legacy docs for 2 repos ($\sim$400 files)}
-        \resumeItem{Hardened CI/CD via 2 internal AWS pipeline stages, blocking lints, complexity checks, \& $\sim$40 integration tests}
+        \resumeItem{Refactored C++ infrastructure for 2 fiber-cleaning robot arms projected to save \$28.6M/year across 85 data centers}
+        \resumeItem{Built a 19-route HTTP server to control robot arms remotely over SSH while keeping the local control loop under 2ms}
+        \resumeItem{Made an LLM-as-judge classification pipeline for 6 optical fiber and transceiver labels, storing live detection data in S3}
+        \resumeItem{Created a self-evolving MCP knowledge base for agent-first development, migrating $\sim$400 legacy docs from 2 repos}
+        \resumeItem{Hardened 2 AWS CI/CD pipeline stages with blocking lint checks, code complexity checks, and $\sim$40 integration tests}
       \resumeItemListEnd
     \resumeSubheading
       {IBM}{May 2025 -- May 2026}
       {AI Engineering Intern}{Remote}
       \resumeItemListStart
-        \resumeItem{Shipped a REST LLM microservice that generated documentation for 3100+ scripts and reduced team costs by \$223,000}
+        \resumeItem{Shipped an LLM-powered REST microservice to power documentation for 3,100+ scripts, saving \$223,000 in labor costs}
         \resumeItem{Helped triage $\sim$500k criminal records spanning 20+ years with a LangChain chatbot built on Python, cutting review time}
-        \resumeItem{Deployed serverless Azure Function Apps with automatic codebase scaling, cutting the manual review workload by 78\%}
-        \resumeItem{Refined an AI file-chunking pipeline with Llama-4 and GPT-4o-mini to process 7+ large-scale internal requests}
+        \resumeItem{Deployed serverless Azure Function Apps that autoscaled with incoming jobs, cutting manual review workload by 78\%}
+        \resumeItem{Refined a file-chunking pipeline using Llama-4 and GPT-4o-mini to handle 7+ large-scale internal processing requests}
       \resumeItemListEnd
   \resumeSubHeadingListEnd
 
@@ -156,35 +156,37 @@
 \section{\textbf{PROJECTS}}
     \resumeSubHeadingListStart
     \resumeProjectHeading
-  {\href{https://github.com/SlothfulDreams/terrar.ai}{\textcolor{linkblue}{\underline{\faGithub\ terrar.ai}}} \textbf{(HackPrinceton '25 xAI 1st place winner)}
+  {\href{https://github.com/0xABAN/YADL}{\textcolor{linkblue}{\underline{\faGithub\ Agent-Driven Vision Annotation}}} \textbf{(OpenAI WebMCP Challenge '26)}
   $|$
-  \emph{C\#, Grok}
+  \emph{Python, WebMCP, OpenCV}
   }
   {}
   \resumeItemListStart
-    \resumeItem{Crafted Terraria NPC agents framework that turns user words into action, earning \$8k against 800+ participants}
-    \resumeItem{Implemented C\# registry of 7 typed world actions/tools for agents, powering coordination for up to 15 parallel units}
-  \resumeItemListEnd
-     \resumeProjectHeading
-  {\href{https://github.com/AdamPSU/simulacra}{\textcolor{linkblue}{\underline{\faGithub\ simulacra}}} \textbf{(YHack '26 K2 Think V2 1st place winner)}
-  $|$
-  \emph{Python, FastAPI, LangGraph, React}
-  }{}
-  \resumeItemListStart
-    \resumeItem{Designed a multi-agent orchestration engine in FastAPI with LangGraph StateGraph, running concurrent cognitive loops via asyncio with shared memory streams and Pydantic-validated structured outputs}
-    \resumeItem{Built per-agent memory retrieval with temporal decay scoring, threshold-triggered reflection, and Deffuant bounded-confidence opinion dynamics to model echo-chamber formation across 50+ agents streamed over Socket.IO}
+    \resumeItem{Turned AI agents into click-free CV data annotators through 26 WebMCP tools to draw \& navigate an open canvas}
+    \resumeItem{Built an OpenCV vision keyboard emulator with 98.78\% F1 on 1,253 AI-labeled images after 600 MPS-accelerated epochs}
+    \resumeItem{Balanced image datasets using 8 deterministic image transforms and GPT-Image-2 in asynchronous augmentation jobs}
+    \resumeItem{Supported 16 concurrent labeling sessions at \textless{}300 ms p95 metadata API latency using FastAPI, PostgreSQL, and S3}
   \resumeItemListEnd
     \resumeProjectHeading
-  {\href{https://github.com/AdamPSU/maestro}{\textcolor{linkblue}{\underline{\faGithub\ nexdraw}}} \textbf{(NexHacks '26 ByteDance 2nd place winner)}
+  {\href{https://github.com/AdamPSU/maestro}{\textcolor{linkblue}{\underline{\faGithub\ Multimodal Drawing Canvas}}} \textbf{(NexHacks '26 ByteDance 2nd place)}
   $|$
-  \emph{TypeScript, Next.js, Gemini, PostgreSQL}
+  \emph{TypeScript, Gemini, PostgreSQL}
   }
   {}
   \resumeItemListStart
-    \resumeItem{Placed 2nd of 1500+ solo with a tldraw canvas that auto-completes sketches in place via Gemini AI image generation}
-    \resumeItem{Classified chat vs draw with Gemini, then cropped the subject with Hugging Face Grounding DINO on CUDA (PyTorch)}
-    \resumeItem{Piped voice prompts through OpenAI Whisper and gated every generation behind an accept/reject overlay on the canvas}
-    \resumeItem{Persisted tldraw snapshots as PostgreSQL JSONB on a 2s debounce, writing PNG previews and skipping saves offline}
+    \resumeItem{Won 2nd (out of 1500+) solo with a tldraw canvas that auto-completes sketches in place via Gemini AI image generation}
+    \resumeItem{Used Gemini to classify chat vs drawing requests, then cropped subjects with Grounding DINO on CUDA (PyTorch)}
+    \resumeItem{Integrated OpenAI Whisper for voice prompts and gated each image generation behind an on-canvas accept/reject overlay}
+    \resumeItem{Saved tldraw snapshots as PostgreSQL JSONB on a 2s debounce, generating PNG previews and skipping saves offline}
+  \resumeItemListEnd
+     \resumeProjectHeading
+  {\href{https://github.com/AdamPSU/simulacra}{\textcolor{linkblue}{\underline{\faGithub\ Multi-Agent Social Simulation}}} \textbf{(YHack '26 K2 Think V2 1st place)}
+  $|$
+  \emph{Python, LangGraph, asyncio}
+  }{}
+  \resumeItemListStart
+    \resumeItem{Built a multi-agent simulation engine with FastAPI and LangGraph StateGraph, using asyncio for concurrent agent execution, shared memory streams, and Pydantic validation for structured outputs}
+    \resumeItem{Modeled echo-chamber formation across 50+ agents using recency-weighted memory retrieval, threshold-triggered reflection, and Deffuant bounded-confidence opinion updates; streamed simulation updates over Socket.IO}
   \resumeItemListEnd
     \resumeSubHeadingListEnd
 
@@ -196,14 +198,14 @@
       {Vice President}{University Park, PA}
       \resumeItemListStart
               \resumeItem{Brought Claude AI to Penn State, drawing in 260+ club signups in its first month (the fastest growth in school history)}
-              \resumeItem{Taught AI tooling (agent harnesses, skills, hooks, MCPs, multiplexers) to 170+ students, with 90\% returning for follow-ups}
+              \resumeItem{Taught agent harnesses, skills, hooks, MCP, and multiplexers to 170+ students, with 90\% returning for follow-up sessions}
         \resumeItemListEnd
     \resumeSubheading
       {Nittany AI}{Jan 2025 -- Jan 2026}
       {Director (AI)}{University Park, PA}
       \resumeItemListStart
-              \resumeItem{Led a research reading group for the largest AI club on campus, with 40+ students per semester and 85\% retention}
-              \resumeItem{Covered papers \href{https://arxiv.org/abs/1506.02640}{\underline{YOLO}}, \href{https://arxiv.org/abs/2511.16719}{\underline{SAM3}}, \href{https://arxiv.org/abs/1706.03762}{\underline{Attention Is All You Need}}, and \href{https://arxiv.org/abs/1412.6980}{\underline{Adam Optimizer}} across 5 months of student-led seminars}
+              \resumeItem{Led an AI research reading group with 40+ students per semester and 85\% retention for the largest AI club on campus}
+              \resumeItem{Covered ML papers \href{https://arxiv.org/abs/1506.02640}{\underline{YOLO}}, \href{https://arxiv.org/abs/2511.16719}{\underline{SAM3}}, \href{https://arxiv.org/abs/1706.03762}{\underline{Attention Is All You Need}}, and \href{https://arxiv.org/abs/1412.6980}{\underline{Adam Optimizer}} over 5 months of student-led seminars}
       \resumeItemListEnd
     \resumeSubHeadingListEnd
 
