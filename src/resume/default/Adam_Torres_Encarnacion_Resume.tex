@@ -53,8 +53,9 @@
 
 % Sections formatting
 \titleformat{\section}{
-  \vspace{2pt}\scshape\raggedright\large
+  \vspace{1pt}\scshape\raggedright\large
 }{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+\titlespacing*{\section}{0pt}{1.75ex}{1.15ex}
 
 % Ensure that generate pdf is machine readable/ATS parsable
 \ifdefined\pdfgentounicode
@@ -97,7 +98,7 @@
 
 \newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.15in, label={}]}
 \newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
-\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}[itemsep=4pt]}
 \newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-6pt}}
 
 
