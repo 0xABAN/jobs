@@ -1,0 +1,12 @@
+{
+  "defaultTools": [
+    "+codemode"
+  ],
+  "enabledModels": [
+    "openai-codex/*",
+    "claude-bridge/*"
+  ],
+  "packages": [
+    "npm:pi-claude-bridge@0.9.1"
+  ]
+}
