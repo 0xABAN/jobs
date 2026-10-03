@@ -1,6 +1,0 @@
-# Track configuration only; keep credentials, packages, and sessions local.
-*
-!.gitignore
-!README.md
-!settings.json
-!mcp.json
