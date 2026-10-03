@@ -1,4 +1,8 @@
-Adam's job-application harness. Agent files live in `src/core/`. Do not invent extra pipeline.
+Adam's automatic job-application harness, currently under development.
+The intended end state is a Pi agent launched from the repository root that
+completes and submits applications within Adam's approved scope and logs every
+attempt. Agent files live in `src/core/`. Preserve the approval and credential
+safety rules below. Do not invent extra pipeline.
 
 | What | Where |
 | --- | --- |
@@ -13,7 +17,7 @@ Never read or print credential-bearing MCP files, including `.pi/mcp.json` when 
 
 Resume builds: run `latexmk -pdf <filename>.tex && latexmk -c <filename>.tex` from the relevant resume folder. Keep only `.tex` sources and final `.pdf` files; remove leftover build logs such as `missfont.log`. Use lowercase `-c`, never `-C`, which also deletes PDFs.
 
-Apply: Codex computer-use + Jobright (`apply.md`). Log every application attempt on the sheet. Adam's active autonomous-application goal authorizes submitting completed applications for roles in that goal without pausing for routine approval. Pause only for a CAPTCHA, a legally binding agreement, or a required answer that is genuinely missing or ambiguous; never invent an answer.
+Apply: Pi + Cua Driver + Jobright (`apply.md`). Log every application attempt on the sheet. Adam's active autonomous-application goal authorizes submitting completed applications for roles in that goal without pausing for routine approval. Pause only for a CAPTCHA, a legally binding agreement, or a required answer that is genuinely missing or ambiguous; never invent an answer.
 
 At the start of every application task, read the local-only `src/core/apply.md` for Adam's profile and application playbook. Treat only explicitly confirmed entries as answers; ask Adam about missing or ambiguous answers, especially legal, work-authorization, and voluntary demographic questions. Do not infer or autofill those answers from browser profiles.
 
