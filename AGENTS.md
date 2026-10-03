@@ -7,7 +7,7 @@ Adam's job-application harness. Agent files live in `src/core/`. Do not invent e
 | Apply playbook | `src/core/apply.md` |
 | Tracker | Google Sheet `1ZghuMB16Qc1fIMrLCSAQkkBWDymTYGlx1_hR0RTsP_I` tab `Apps` |
 | Secrets | `.env` — never print |
-| Sheets MCP | `.pi/mcp.json` |
+| Local MCPs | `.pi/mcp.json` — Google Sheets and read-only Gmail |
 
 Never read or print credential-bearing MCP files, including `.pi/mcp.json` when it contains token material, `.mcp-google-sheets-token.json`, and files under `.mcp/`. If secret material appears in tool output, stop immediately, do not repeat it, and tell the user which file needs credential rotation.
 
