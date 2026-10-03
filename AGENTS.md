@@ -7,9 +7,9 @@ Adam's job-application harness. Agent files live in `src/core/`. Do not invent e
 | Apply playbook | `src/core/apply.md` |
 | Tracker | Google Sheet `1ZghuMB16Qc1fIMrLCSAQkkBWDymTYGlx1_hR0RTsP_I` tab `Apps` |
 | Secrets | `.env` — never print |
-| Sheets MCP | `.mcp.json` |
+| Sheets MCP | `.pi/mcp.json` |
 
-Never read or print credential-bearing MCP files, including `.mcp.json` when it contains token material, `.mcp-google-sheets-token.json`, and files under `.mcp/`. If secret material appears in tool output, stop immediately, do not repeat it, and tell the user which file needs credential rotation.
+Never read or print credential-bearing MCP files, including `.pi/mcp.json` when it contains token material, `.mcp-google-sheets-token.json`, and files under `.mcp/`. If secret material appears in tool output, stop immediately, do not repeat it, and tell the user which file needs credential rotation.
 
 Resume builds: run `latexmk -pdf <filename>.tex && latexmk -c <filename>.tex` from the relevant resume folder. Keep only `.tex` sources and final `.pdf` files; remove leftover build logs such as `missfont.log`. Use lowercase `-c`, never `-C`, which also deletes PDFs.
 

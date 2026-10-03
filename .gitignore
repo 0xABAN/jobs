@@ -10,7 +10,7 @@
 !src/resume/masters/*.pdf
 
 .env
-.mcp.json
+/.pi/mcp.json
 .mcp-google-sheets-token.json
 .mcp/
 
