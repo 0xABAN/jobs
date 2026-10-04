@@ -29,4 +29,16 @@ Run the tests with `uv run pytest`.
 Gmail uses `@artymclabin/gmail-mcp@1.2.3` with the `gmail.readonly` OAuth scope.
 Its files are `.mcp/gmail-oauth.json` (OAuth client) and `.mcp/gmail-token.json`
 (tokens). Reauthentication must include `--scopes=gmail.readonly`; the server
-requests write access by default.
+requests write access by default:
+
+    GMAIL_OAUTH_PATH=$PWD/.mcp/gmail-oauth.json GMAIL_CREDENTIALS_PATH=$PWD/.mcp/gmail-token.json \
+      npx @artymclabin/gmail-mcp@1.2.3 auth --scopes=gmail.readonly
+
+Google Sheets (`mcp-google-sheets`) reads the same Desktop OAuth client from
+`.mcp/gmail-oauth.json` and its token from `.mcp/google-sheets-token.json`
+(`spreadsheets` and `drive.file` scopes). The server has no sign-in flow of its
+own, so a new token needs a loopback OAuth flow with that client.
+
+The Google Cloud app is published ("In production"), so refresh tokens no longer
+expire after 7 days; its privacy policy is https://advm.dev/privacy. Consent
+screens show "Google hasn't verified this app": choose Advanced, then continue.
