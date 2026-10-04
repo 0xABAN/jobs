@@ -1,12 +1,10 @@
 # Application optimizations
 
-Fireworks baseline: 17 minutes (user-reported).
+Fireworks baseline: 17 minutes (user-reported, with Jobright autofill). The first application under `src/core/apply.md`, without Jobright, sets the new baseline.
 
 ## Next application
 
 - Time from the first application-specific action through verified submission and Apps-sheet logging. Record total time and time spent on eligibility/duplicate checks, form completion, and submission/logging.
-- Start in the separate jobs Chrome profile and use CUA's native Chrome controls.
 - Verify the company and role in the active form before interacting with Apply.
-- Check required fields in the employer's form; Jobright's completion indicator can miss or misreport fields.
-- Ask Adam before choosing explicit consent options, such as interview recording.
+- Check required fields in the employer's form itself (`states.required` in the snapshot), not a progress indicator.
 - Verify the employer's success confirmation and the Apps-sheet row before finishing.
