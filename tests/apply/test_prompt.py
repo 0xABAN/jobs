@@ -1,6 +1,7 @@
 from datetime import date
 
-from core.prompt import REPO_ROOT, load_profile, render_prompt
+from jobs.apply.prompt import render_prompt
+from jobs.config import REPO_ROOT, load_profile
 
 EXAMPLE_PROFILE = load_profile(REPO_ROOT / "profile.example.json")
 URL = "https://job-boards.greenhouse.io/example/jobs/1"
@@ -16,7 +17,7 @@ def test_renders_job_profile_and_resumes():
     assert "${" not in prompt
     assert URL in prompt
     assert "- Full name: YOUR_LEGAL_NAME" in prompt
-    assert str(REPO_ROOT / "src/resume/default/Adam_Torres_Encarnacion_Resume.pdf") in prompt
+    assert str(REPO_ROOT / "resumes/default/Adam_Torres_Encarnacion_Resume.pdf") in prompt
     assert "The Pennsylvania State University" in prompt  # text extracted from the resume PDF
     assert "BrowserProfiles/jobs( |$)" in prompt  # the template's $$ escape
 

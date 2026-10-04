@@ -3,7 +3,8 @@
 import argparse
 from datetime import date
 
-from core.prompt import load_profile, render_prompt
+from jobs.apply.prompt import render_prompt
+from jobs.config import load_profile
 
 
 def main() -> None:

@@ -1,20 +1,19 @@
 """Render the per-job apply prompt from the applicant profile.
 
-``apply.md`` is a ``string.Template``: this module fills its ``${name}``
+``prompt.md`` is a ``string.Template``: this module fills its ``${name}``
 placeholders, and a literal dollar sign in the template is written ``$$``.
 The rendered prompt is self-contained, as in ApplyPilot: the apply agent gets
 every fact it needs from the prompt and never reads repository files for them.
 """
 
-import json
 import subprocess
 from datetime import date
 from pathlib import Path
 from string import Template
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
-PROFILE_PATH = REPO_ROOT / "profile.json"
-TEMPLATE_PATH = Path(__file__).with_name("apply.md")
+from jobs.config import REPO_ROOT
+
+TEMPLATE_PATH = Path(__file__).with_name("prompt.md")
 
 # Profile sections that configure the harness rather than describe Adam. They
 # fill dedicated slots in the template instead of the applicant profile.
@@ -25,11 +24,6 @@ HOURS_PER_YEAR = 2080
 
 # Words in profile keys that read as acronyms in the rendered profile.
 ACRONYMS = {"eeo", "gpa", "sat", "url"}
-
-
-def load_profile(path: Path = PROFILE_PATH) -> dict:
-    """Read the profile JSON; ``profile.example.json`` documents its shape."""
-    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def render_prompt(job_url: str, *, dry_run: bool, profile: dict, today: date) -> str:

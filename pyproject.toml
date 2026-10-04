@@ -6,7 +6,7 @@ requires-python = ">=3.12"
 dependencies = []
 
 [project.scripts]
-jobs = "core.cli:main"
+jobs = "jobs.cli:main"
 
 [dependency-groups]
 dev = [
@@ -16,6 +16,3 @@ dev = [
 [build-system]
 requires = ["uv_build>=0.11.5,<0.12"]
 build-backend = "uv_build"
-
-[tool.uv.build-backend]
-module-name = "core"

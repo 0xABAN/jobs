@@ -6,8 +6,8 @@
 *.fls
 *.fdb_latexmk
 *.pdf
-!src/resume/default/*.pdf
-!src/resume/masters/*.pdf
+!resumes/default/*.pdf
+!resumes/masters/*.pdf
 
 .env
 /.pi/mcp.json

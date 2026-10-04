@@ -1,6 +1,6 @@
 # Application optimizations
 
-Fireworks baseline: 17 minutes (user-reported, with Jobright autofill). The first application under `src/core/apply.md`, without Jobright, sets the new baseline.
+Fireworks baseline: 17 minutes (user-reported, with Jobright autofill). The first application under `src/jobs/apply/prompt.md`, without Jobright, sets the new baseline.
 
 ## Next application
 
