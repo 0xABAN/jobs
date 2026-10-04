@@ -1,0 +1,84 @@
+{
+  "personal": {
+    "full_name": "YOUR_LEGAL_NAME",
+    "preferred_name": "YOUR_PREFERRED_NAME",
+    "pronouns": "",
+    "email": "your.email@example.com",
+    "password": "",
+    "phone": "555-123-4567",
+    "address": "123 Main St",
+    "address_line_2": "",
+    "city": "Your City",
+    "province_state": "Your State",
+    "country": "United States",
+    "postal_code": "12345",
+    "linkedin_url": "https://www.linkedin.com/in/yourprofile",
+    "github_url": "https://github.com/yourusername",
+    "portfolio_url": "",
+    "website_url": ""
+  },
+  "work_authorization": {
+    "citizenship": "U.S. citizen",
+    "dual_citizenship": "None",
+    "legally_authorized_to_work": "Yes",
+    "require_sponsorship": "No"
+  },
+  "availability": {
+    "earliest_start_date": "Immediately",
+    "internship_availability": "",
+    "notice_period": "",
+    "schedule": ""
+  },
+  "compensation": {
+    "salary_floor": 85000,
+    "salary_currency": "USD",
+    "salary_range_min": 85000,
+    "salary_range_max": 105000
+  },
+  "experience": {
+    "summary": "One sentence on your experience level",
+    "target_role": "software engineer"
+  },
+  "education": {
+    "school": "Your University",
+    "school_dropdown_names": ["Your University"],
+    "degrees": "B.S. in Your Major",
+    "gpa": "",
+    "graduation": "",
+    "enrollment": "",
+    "major_dropdown_order": ["Your Major"],
+    "sat": ""
+  },
+  "preferences": {
+    "work_arrangement_order": ["Remote", "Hybrid", "Onsite"],
+    "location_order": ["Anywhere"],
+    "relocation": ""
+  },
+  "eeo_voluntary": {
+    "gender": "Decline to self-identify",
+    "sexual_orientation": "Decline to self-identify",
+    "ethnicity": "Decline to self-identify",
+    "race": "Decline to self-identify",
+    "veteran_status": "I am not a protected veteran",
+    "disability_status": "I do not wish to answer"
+  },
+  "standard_answers": {
+    "previously_employed_by_company": "No",
+    "referrals": "None",
+    "references": "None provided",
+    "background_check_consent": "Yes",
+    "how_did_you_hear": "Online job board",
+    "age_18_or_older": "",
+    "criminal_conviction": ""
+  },
+  "excluded_companies": [],
+  "resumes": {
+    "full_time": "src/resume/default/Adam_Torres_Encarnacion_Resume.pdf",
+    "internship": "src/resume/masters/Adam_Torres_Encarnacion_Resume_Masters.pdf"
+  },
+  "tracker": {
+    "sheet_id": "YOUR_GOOGLE_SHEET_ID",
+    "tab": "Apps",
+    "columns": ["Company", "Role", "Applied", "Salary", "Id"]
+  }
+}

@@ -5,8 +5,8 @@ Find roles at:
 - https://app.joinhandshake.com/home
 - https://www.linkedin.com/jobs/
 
-Apply to each role by following `src/core/apply.md` exactly, one application at a time. Each application ends with a single `RESULT:` line; never stop to ask Adam a question.
+To apply to a role, render its prompt with `uv run jobs prompt <url>` (add `--dry-run` for a dry run) and follow the rendered prompt exactly, one application at a time. Each application ends with a single `RESULT:` line; never stop to ask Adam a question.
 
-`JOBS.md` holds Adam's personal information and the Apps sheet. Resumes are in `src/resume/`.
+Adam's answers live in `profile.json` (gitignored; `profile.example.json` shows its shape), and the prompt template is `src/core/apply.md`. Change those, never a rendered prompt.
 
-Use only the CUA-owned `jobs` Chrome profile described in `src/core/apply.md`. Leave personal Chrome alone.
+Use only the CUA-owned `jobs` Chrome profile described in the rendered prompt. Leave personal Chrome alone.
