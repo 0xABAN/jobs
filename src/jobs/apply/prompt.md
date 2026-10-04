@@ -69,7 +69,7 @@ Fail with `not_eligible` only for an explicit hard requirement Adam cannot meet:
 ## Steps
 
 1. Check the hard-stop list for an excluded company, then the tracker for an existing row with the same company and role.
-2. Start the browser (see Browser) and open the job URL.
+2. Attach to Chrome (see Browser); it is already open on the job URL.
 3. Read the posting: company, role, location, eligibility, salary range, and job ID. Confirm that the page matches the job you were given.
 4. Click Apply. If a new tab or window opens, continue there.
 5. Login wall: continue if already signed in. Prefer "apply as guest" or "continue without an account". Otherwise sign in, or create an account, with `personal.email` and `personal.password`; if the password is empty or neither works, fail with `login_issue`. For a verification code or link, search Gmail narrowly by company and Adam's email, and use only that message.
@@ -89,7 +89,7 @@ The call shapes below are complete; skip `describeTool`. `tab` stands for `sessi
 
 | Call | Arguments | Returns |
 |---|---|---|
-| `browser_prepare` | `session, allow_launch, profile: {mode, name}` | `prepared_pid` |
+| `browser_prepare` | `window, strategy: {kind: "existing_profile"}` | |
 | `list_windows` | none | `windows[]` with `pid`, `window_id` |
 | `get_browser_state` (bind) | `session, pid, window_id` | `target_id`, `tabs[]` with `tab_id`, `url`, `active` |
 | `get_browser_state` (read) | `tab, snapshot_format, query?, include_screenshot?` | `refs[]`, `content_refs[]`; a screenshot is an image block in `content` |
@@ -104,11 +104,11 @@ The call shapes below are complete; skip `describeTool`. `tab` stands for `sessi
 
 ### Lifecycle
 
-- Use a new session label for every job, such as `apply-20261004-1630`, and pass it as `session` on every call. Ended labels cannot be reused.
-- Start: `browser_prepare({session, allow_launch: true, profile: {mode: "isolated_named", name: "jobs"}})`. It launches Adam's `jobs` profile, with its saved logins, in the background and returns `prepared_pid`. Extensions are disabled.
-- If it is refused with `browser_endpoint_owner_mismatch`, a `jobs` browser from an earlier run is still open. Quit it from the shell with `pkill -f 'BrowserProfiles/jobs( |$$)'; sleep 2`, then retry once. If it is still refused, fail with `browser_unavailable`.
-- Bind: find the window for `prepared_pid` with `list_windows`, then call `get_browser_state({session, pid, window_id})` for `target_id` and `tabs[].tab_id`.
-- Finish: `end_session({session})` closes the browser. Do it for every outcome.
+- Chrome is already running in the background as pid `${chrome_pid}`, on Adam's `jobs` profile with his saved logins. Never launch or quit Chrome.
+- Pass `session: "${session}"` on every call.
+- Attach once: repeat `list_windows` until a window has `pid` ${chrome_pid}, then call `browser_prepare` with that window and `strategy: {kind: "existing_profile"}`. If it is refused, fail with `browser_unavailable`.
+- Bind: `get_browser_state({session, pid, window_id})` returns `target_id` and `tabs[]`; work in the tab whose `url` is the job.
+- Finish: `end_session({session})` for every outcome.
 
 ### Reading
 

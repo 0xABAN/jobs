@@ -14,8 +14,8 @@ from jobs.config import REPO_ROOT
 TEMPLATE_PATH = REPO_ROOT / "src/jobs/apply/prompt.md"
 
 
-def render_prompt(job_url: str, *, dry_run: bool, profile: dict, today: date) -> str:
-    """Return the complete prompt for applying to one job."""
+def render_prompt(job_url: str, *, dry_run: bool, profile: dict, today: date, session: str, chrome_pid: int) -> str:
+    """Return the complete prompt for applying to one job in the Chrome the launcher opened."""
     if dry_run:
         run_mode = "**Dry run:** do everything except the final submit click, and finish with status `dry_run`."
     else:
@@ -26,5 +26,7 @@ def render_prompt(job_url: str, *, dry_run: bool, profile: dict, today: date) ->
         run_mode=run_mode,
         today=today.strftime("%m/%d/%Y"),
         repo_root=REPO_ROOT,
+        session=session,
+        chrome_pid=chrome_pid,
         profile=json.dumps(profile, indent=2, ensure_ascii=False),
     )

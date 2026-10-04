@@ -6,20 +6,23 @@ from `.pi/mcp.json`; inspect their connections with `/mcp` inside Pi.
 The MCP configuration and credentials under `.mcp/` are local and gitignored.
 Run `/reload` in an existing Pi session after changing the MCP configuration.
 
-Browser control uses the `cua-driver` MCP server on this Mac (`cua-driver mcp`),
-which needs the CuaDriver daemon running (`cua-driver status`). Each application
-launches the CUA-owned `jobs` Chrome profile itself; see `src/jobs/apply/prompt.md`.
+Browser control uses the `cua-driver` MCP server on this Mac (`cua-driver mcp`).
+Its daemon must run with `--grant existing-profile` (`cua-driver status`), so it
+can attach to the Chrome the launcher starts.
 
 ## Apply to a job
 
 Copy `profile.example.json` to `profile.json` and fill it in; it is gitignored.
-Then print the prompt for one job:
+Then apply to one job:
 
-    uv run jobs prompt <url> --dry-run
+    uv run jobs apply <url> --dry-run [--model claude-sonnet-5-5:low] [--timeout 15]
 
-The prompt is `src/jobs/apply/prompt.md` filled in with the job and `profile.json`.
-The agent reads the resume it chooses with `pdftotext` (from Poppler). Ask Pi to
-apply, or run the prompt yourself; drop `--dry-run` to submit.
+The launcher opens the job in a background Chrome on the `jobs` profile with
+throttling off, runs a headless Pi agent on `src/jobs/apply/prompt.md` filled in
+with the job and `profile.json`, and prints the agent's JSON result. Pi runs from
+`~/.jobs/workers/0`, outside the repo, so this repo's `AGENTS.md` never reaches it.
+Each run leaves its prompt, transcript, and result in `~/.jobs/runs/<run id>/`.
+Drop `--dry-run` to submit.
 
 Run the tests with `uv run pytest`.
 
