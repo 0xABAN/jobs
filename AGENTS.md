@@ -8,3 +8,5 @@ Open Chrome's `jobs` profile and find roles at:
 Before applying, read `JOBS.md` for Adam's personal information. Resumes are in `src/resume/`.
 
 Always start applications with the Jobright extension. Review its autofilled answers and make only necessary corrections before submitting. Ask Adam about missing or ambiguous information; never invent answers.
+
+Keep the `jobs` profile tidy: close unused tabs and tabs for completed applications. Leave personal Chrome tabs alone.
