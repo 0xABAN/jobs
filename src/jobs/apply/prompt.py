@@ -1,12 +1,9 @@
-"""Build the prompt for one job application.
+"""Render the per-job apply prompt from the applicant profile.
 
-The template, ``prompt.md``, holds the rules. This module fills in everything
-that depends on the job or on Adam's profile. As in ApplyPilot, the result is
-self-contained: the apply agent learns everything about Adam from the prompt
-and never reads repository files.
-
-The template uses ``string.Template`` syntax: ``${name}`` marks a value filled
-in here, and ``$$`` is a literal dollar sign.
+``prompt.md`` is a ``string.Template``: this module fills its ``${name}``
+placeholders, and a literal dollar sign in the template is written ``$$``.
+The rendered prompt is self-contained, as in ApplyPilot: the apply agent gets
+every fact it needs from the prompt and never reads repository files for them.
 """
 
 import subprocess
@@ -19,57 +16,46 @@ from jobs.config import REPO_ROOT
 TEMPLATE_PATH = Path(__file__).with_name("prompt.md")
 
 # Profile sections that configure the harness rather than describe Adam. They
-# fill specific places in the prompt instead of appearing in the answer list.
-SETTINGS_SECTIONS = {"excluded_companies", "resumes", "tracker"}
+# fill dedicated slots in the template instead of the applicant profile.
+HARNESS_SECTIONS = {"excluded_companies", "resumes", "tracker"}
 
-# A working year (40 hours x 52 weeks), for turning a salary into an hourly rate.
-WORK_HOURS_PER_YEAR = 2080
+# Annual salary to hourly rate, as in ApplyPilot: 40 hours x 52 weeks.
+HOURS_PER_YEAR = 2080
 
-# Words written in capitals when profile keys become labels, e.g. "gpa" -> "GPA".
+# Words in profile keys that read as acronyms in the rendered profile.
 ACRONYMS = {"eeo", "gpa", "sat", "url"}
 
 
 def render_prompt(job_url: str, *, dry_run: bool, profile: dict, today: date) -> str:
-    """Return the complete prompt for applying to one job.
+    """Return the complete apply prompt for one job.
 
-    Raises ``KeyError`` when the profile lacks a field the prompt needs, and
+    Raises ``KeyError`` when the profile lacks a field the template needs, and
     ``subprocess.CalledProcessError`` when a resume PDF cannot be read.
     """
     personal = profile["personal"]
     tracker = profile["tracker"]
-    resumes = {kind: REPO_ROOT / path for kind, path in profile["resumes"].items()}
-
-    values = {
-        # The job and whether to submit it.
-        "job_url": job_url,
-        "run_mode": _describe_run_mode(dry_run),
-
-        # Resumes: the PDF to upload, and the text the agent answers from.
-        "resume_full_time": resumes["full_time"],
-        "resume_internship": resumes["internship"],
-        "resume_full_time_text": _read_pdf_text(resumes["full_time"]),
-        "resume_internship_text": _read_pdf_text(resumes["internship"]),
-
-        # The Google Sheet that records applications.
-        "tracker": f"the `{tracker['tab']}` tab of Google Sheet `{tracker['sheet_id']}`",
-        "tracker_columns": " | ".join(tracker["columns"]),
-
-        # Rules that depend on Adam's settings.
-        "excluded_companies": ", ".join(profile["excluded_companies"]),
-        "salary_rules": _describe_salary_rules(profile["compensation"]),
-        "login_rule": _describe_login_rule(personal),
-        "legal_name": personal["full_name"],
-        "today": today.strftime("%m/%d/%Y"),
-
-        # Everything Adam has answered, for filling in forms.
-        "applicant_profile": _list_answers(profile),
-    }
+    resumes = {kind: (REPO_ROOT / path).resolve() for kind, path in profile["resumes"].items()}
 
     template = Template(TEMPLATE_PATH.read_text(encoding="utf-8"))
-    return template.substitute(values)
+    return template.substitute(
+        job_url=job_url,
+        run_mode=_format_run_mode(dry_run),
+        resume_full_time=resumes["full_time"],
+        resume_internship=resumes["internship"],
+        resume_full_time_text=_extract_text(resumes["full_time"]),
+        resume_internship_text=_extract_text(resumes["internship"]),
+        tracker=f"the `{tracker['tab']}` tab of Google Sheet `{tracker['sheet_id']}`",
+        tracker_columns=" | ".join(tracker["columns"]),
+        excluded_companies=", ".join(profile["excluded_companies"]),
+        salary_rules=_format_salary_rules(profile["compensation"]),
+        login_rule=_format_login_rule(personal),
+        legal_name=personal["full_name"],
+        today=today.strftime("%m/%d/%Y"),
+        applicant_profile=_format_profile(profile),
+    )
 
 
-def _describe_run_mode(dry_run: bool) -> str:
+def _format_run_mode(dry_run: bool) -> str:
     if dry_run:
         return (
             "**Dry run.** Do everything except the final submit click, then end "
@@ -79,85 +65,71 @@ def _describe_run_mode(dry_run: bool) -> str:
     return "**Live run.** Submit the application once every check in step 8 passes."
 
 
-def _describe_salary_rules(compensation: dict) -> str:
-    """Return the salary rules as bullets nested under the template's "Salary" item."""
+def _format_salary_rules(compensation: dict) -> str:
+    """Return the salary rules as Markdown bullets nested under the template's Salary item."""
+    floor = compensation["salary_floor"]
     currency = compensation["salary_currency"]
-    floor = _dollars(compensation["salary_floor"])
-    hourly_floor = _dollars(round(compensation["salary_floor"] / WORK_HOURS_PER_YEAR))
-    fallback_range = (
-        f"{_dollars(compensation['salary_range_min'])}–{_dollars(compensation['salary_range_max'])}"
-    )
+    range_min = compensation["salary_range_min"]
+    range_max = compensation["salary_range_max"]
+    hourly = round(floor / HOURS_PER_YEAR)
 
-    rules = [
-        f"Full-time roles: answer the larger of the posted range's midpoint and "
-        f"{floor} {currency}, capped at the posted maximum. With no posted range, "
-        f"answer {floor} {currency}.",
-
-        f"Asked for a range when none is posted: {fallback_range} {currency}.",
-
-        f"Hourly roles: the posted range's midpoint, otherwise {hourly_floor}/hour "
-        f"({floor} divided by {WORK_HOURS_PER_YEAR} hours).",
-    ]
-    return "\n".join(f"  - {rule}" for rule in rules)
+    return "\n".join([
+        f"  - Full-time roles: answer the larger of the posted range's midpoint and "
+        f"${floor:,} {currency}, capped at the posted maximum. With no posted "
+        f"range, answer ${floor:,} {currency}.",
+        f"  - Asked for a range when none is posted: ${range_min:,}–${range_max:,} {currency}.",
+        f"  - Hourly roles: the posted range's midpoint, otherwise ${hourly}/hour "
+        f"(${floor:,} divided by {HOURS_PER_YEAR} hours).",
+    ])
 
 
-def _describe_login_rule(personal: dict) -> str:
-    """Return how to get past a login wall; the template puts this after "Otherwise"."""
-    if not personal["password"]:
-        return "end with `RESULT:LOGIN_ISSUE`: no account password is configured"
+def _format_login_rule(personal: dict) -> str:
+    if personal["password"]:
+        return (
+            f"sign in, or create an account, with `{personal['email']}` and the "
+            f"password `{personal['password']}`. When both fail, end with "
+            f"`RESULT:LOGIN_ISSUE`"
+        )
 
-    return (
-        f"sign in, or create an account, with `{personal['email']}` and the "
-        f"password `{personal['password']}`. When both fail, end with "
-        f"`RESULT:LOGIN_ISSUE`"
-    )
+    return "end with `RESULT:LOGIN_ISSUE`: no account password is configured"
 
 
-def _list_answers(profile: dict) -> str:
-    """List Adam's answers as Markdown, with one heading per profile section.
+def _format_profile(profile: dict) -> str:
+    """Format Adam's answers as Markdown, one subsection per profile section.
 
-    Blank answers are skipped, so the agent treats those questions as
-    unanswered. The account password is skipped because the login rule
-    already carries it.
+    Empty answers are left out so the agent treats them as unknown, and the
+    account password is left out because the login rule already carries it.
     """
-    sections = []
+    blocks = []
 
     for section, answers in profile.items():
-        if section in SETTINGS_SECTIONS:
+        if section in HARNESS_SECTIONS:
             continue
 
-        lines = [f"### {_label(section)}"]
-        for key, answer in answers.items():
-            is_password = section == "personal" and key == "password"
-            if is_password or answer in ("", [], None):
+        lines = [f"### {_humanize(section)}"]
+        for key, value in answers.items():
+            if section == "personal" and key == "password":
+                continue
+            if value in ("", [], None):
                 continue
 
-            shown = ", ".join(answer) if isinstance(answer, list) else answer
-            lines.append(f"- {_label(key)}: {shown}")
+            shown = ", ".join(value) if isinstance(value, list) else value
+            lines.append(f"- {_humanize(key)}: {shown}")
 
-        sections.append("\n".join(lines))
+        blocks.append("\n".join(lines))
 
-    return "\n\n".join(sections)
+    return "\n\n".join(blocks)
 
 
-def _label(key: str) -> str:
-    """Turn a profile key into a label: ``linkedin_url`` becomes ``Linkedin URL``."""
+def _humanize(key: str) -> str:
+    """Turn a profile key such as ``linkedin_url`` into a label such as ``Linkedin URL``."""
     words = [word.upper() if word in ACRONYMS else word for word in key.split("_")]
-    label = " ".join(words)
-    return label[0].upper() + label[1:]
+    words[0] = words[0][0].upper() + words[0][1:]
+    return " ".join(words)
 
 
-def _dollars(amount: int) -> str:
-    """Format a whole-dollar amount: ``150000`` becomes ``$150,000``."""
-    return f"${amount:,}"
-
-
-def _read_pdf_text(pdf: Path) -> str:
-    """Return a PDF's text as an applicant tracking system would read it.
-
-    Uses ``pdftotext`` from Poppler; ``-layout`` keeps dates aligned with
-    the lines they belong to.
-    """
+def _extract_text(pdf: Path) -> str:
+    """Return a resume's text as employers' parsers see it, via Poppler's pdftotext."""
     result = subprocess.run(
         ["pdftotext", "-layout", str(pdf), "-"],
         check=True,
