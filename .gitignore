@@ -15,5 +15,5 @@
 .mcp/
 
 # Local application profile and browser automation artifacts
-/src/core/apply.md
+/JOBS.md
 .playwright-mcp/

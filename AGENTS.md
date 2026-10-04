@@ -5,6 +5,6 @@ Open Chrome's `jobs` profile and find roles at:
 - https://app.joinhandshake.com/home
 - https://www.linkedin.com/jobs/
 
-Before applying, read `src/core/apply.md` for Adam's personal information. Resumes are in `src/resume/`.
+Before applying, read `JOBS.md` for Adam's personal information. Resumes are in `src/resume/`.
 
 Always start applications with the Jobright extension. Review its autofilled answers and make only necessary corrections before submitting. Ask Adam about missing or ambiguous information; never invent answers.
