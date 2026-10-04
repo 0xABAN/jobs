@@ -85,17 +85,19 @@ Fail with `not_eligible` only for an explicit hard requirement Adam cannot meet:
 
 Drive Chrome through the `cua-driver` MCP server from codemode: the tool `browser_type` is `tools.mcp__cua_driver__browser_type({...})`, and each result's JSON is in `structuredContent`. Work in batches: write one codemode script per page that reads the fields, fills every field it can, and returns a compact summary (ref, name, required, value) instead of raw snapshots.
 
-The call shapes below are complete; skip `describeTool`. `tab` stands for `session, target_id, tab_id`, which every tab-level call needs.
+The call shapes below are complete; skip `describeTool`. `tab` stands for `session, target_id, tab_id`, which every tab-level call needs, and `window` stands for `session, pid, window_id`.
 
 | Call | Arguments | Returns |
 |---|---|---|
 | `browser_prepare` | `session, allow_launch, profile: {mode, name}` | `prepared_pid` |
 | `list_windows` | none | `windows[]` with `pid`, `window_id` |
 | `get_browser_state` (bind) | `session, pid, window_id` | `target_id`, `tabs[]` with `tab_id`, `url`, `active` |
-| `get_browser_state` (read) | `tab, snapshot_format, query?, include_screenshot?` | `refs[]`, `content_refs[]`, `screenshot_png_b64` |
+| `get_browser_state` (read) | `tab, snapshot_format, query?, include_screenshot?` | `refs[]`, `content_refs[]`; a screenshot is an image block in `content` |
 | `browser_navigate` | `tab, url` | |
 | `browser_type` | `tab, ref, text, replace, mode?` | |
-| `browser_click` | `tab, ref, input_route` | `effect` |
+| `get_window_state` | `window, max_elements: 5000` | `elements[]` with `element_token`, `role`, `label` |
+| `click` | `window, element_token` | `effect` |
+| `press_key` | `window, key` | `effect` |
 | `browser_set_input_files` | `tab, ref, files` | |
 | `browser_dialog` | `tab, action` (`inspect`, then `accept` or `dismiss`) | `dialog_id` |
 | `end_session` | `session` | |
@@ -110,19 +112,22 @@ The call shapes below are complete; skip `describeTool`. `tab` stands for `sessi
 
 ### Reading
 
-- `get_browser_state({session, target_id, tab_id, snapshot_format: "semantic_v2"})` returns the visible part of the page and omits off-screen content.
-- `browser_navigate` and clicks return before the page finishes loading, and codemode has no timers. Repeat the read until the expected content appears, up to 10 times.
+- `get_browser_state({session, target_id, tab_id, snapshot_format: "semantic_v2"})` returns the visible part of the page and omits off-screen content. A read without `target_id` and `tab_id` fails with "Missing required integer field: pid".
+- Navigation and clicks return before the page finishes loading, and codemode has no timers. Repeat the read until the expected content appears, up to 10 times.
 - To list form fields, including off-screen ones, add `query: "textbox"`, `"combobox"`, `"checkbox"`, `"radio"`, or `"button"`. Each ref has `name`, `value`, `states.required`, and `actions`.
 - File inputs are refs whose `actions` include `upload`. Greenhouse shows two "Attach" buttons per file; only the hidden one has `upload`, and it can appear a moment after the form loads, so repeat the query until it does.
-- Show a screenshot to yourself with `image("data:image/png;base64," + state.screenshot_png_b64)`.
+- Show a screenshot to yourself with `image(result.content.find(block => block.type === "image"))`.
 - Every snapshot invalidates refs from earlier snapshots of the same tab, and navigation invalidates all refs. Use refs only from the latest snapshot.
 - Selected dropdown values do not appear in snapshots. Check each one with `include_screenshot: true` right after selecting it; typing into a field scrolls it into view.
 
 ### Acting
 
-- Text: `browser_type({..., ref, text, replace: true})`.
-- Dropdowns (`combobox`): `browser_type({..., ref, text: <option text>, replace: true, mode: "keystrokes"})` opens and filters the list. Take a snapshot, then click the matching `option` ref.
-- Clicks on buttons, options, checkboxes, radios, and links: `browser_click({..., ref, input_route: "dom_event"})`. The default route is refused because it would bring the window to the front; never use `delivery_mode: "foreground"`. An `"unverifiable"` effect is normal, so check the outcome with a snapshot.
+- Text: `browser_type({..., ref, text, replace: true})`. Email inputs refuse `replace`; type into them while empty without it.
+- Dropdowns whose `combobox` ref has the `type` action: `browser_type({..., ref, text: <option text>, replace: true, mode: "keystrokes"})` opens and filters the list; then `press_key({window, key: "return"})` selects the focused option.
+- Native dropdowns, whose `combobox` ref lacks `type`, are `AXPopUpButton` elements in `get_window_state`: `click` the button, take a new `get_window_state`, `click` the first `AXMenuItem` after the button whose `label` is the option, then `press_key({window, key: "escape"})`. A copy of the menu in a separate window refuses clicks with `element_outside_target_window`.
+- Buttons, links, checkboxes, and radios: `click({window, element_token})`, with the token of the element whose `role` (`AXButton`, `AXLink`, `AXCheckBox`, `AXRadioButton`) and `label` match, from `get_window_state`. It returns about 1 MB, so filter it inside the script. Each call invalidates the tokens from the previous one.
+- Never use `browser_click`: its clicks are untrusted, so sites ignore them and block the pop-ups they open. Never use `delivery_mode: "foreground"`.
+- An `"unverifiable"` effect is normal; check the outcome with a snapshot.
 - Files: `browser_set_input_files({..., ref, files: [<absolute path>]})`.
 - Page dialogs (alert, confirm, beforeunload): `browser_dialog`.
 - New tabs or windows: bind again with `get_browser_state({session, pid, window_id})`, using `list_windows` to find a new window, and continue in the newest tab.
