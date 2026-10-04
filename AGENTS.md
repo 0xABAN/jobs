@@ -14,7 +14,9 @@ Use the separate jobs browser, not personal Chrome. Reuse it if running; otherwi
 }
 ```
 
-Target only this browser's PID and windows. Do not launch it with `browser_prepare`: that preset disables extensions. Ask before foreground actions. Browser-targeted automation attachment remains unverified.
+Target only this browser's PID and windows. Do not use `browser_prepare`'s isolated launch: it adds `--disable-extensions`.
+
+For browser-targeted control, the Cua daemon needs an approved `--grant existing-profile` at startup (or host authorization). Then call `browser_prepare({pid, window_id, strategy: {kind: "existing_profile"}})` on the jobs window. The grant permits attachment; it does not enable extensions. If authorization is missing, ask Adam rather than widening permissions. Attachment remains unverified. Ask before foreground actions.
 
 Find roles at:
 - https://jobright.ai/jobs/recommend
