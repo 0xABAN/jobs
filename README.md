@@ -17,9 +17,9 @@ Then print the prompt for one job:
 
     uv run jobs prompt <url> --dry-run
 
-The prompt is self-contained: `src/jobs/apply/prompt.md` filled in with the job, the
-profile, and the text of both resumes, which `pdftotext` (from Poppler) extracts.
-Ask Pi to apply, or run the prompt yourself; drop `--dry-run` to submit.
+The prompt is `src/jobs/apply/prompt.md` filled in with the job and `profile.json`.
+The agent reads the resume it chooses with `pdftotext` (from Poppler). Ask Pi to
+apply, or run the prompt yourself; drop `--dry-run` to submit.
 
 Run the tests with `uv run pytest`.
 
