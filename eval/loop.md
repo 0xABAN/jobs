@@ -6,7 +6,7 @@ This runs as a goal that only Adam ends, so there is no finish line: after every
 
 ## What stays fixed
 
-- Apply agents run `pi.MODEL` (GPT 6 Astra, medium thinking) with the default 60-minute timeout, on 3 workers per lane.
+- Apply agents run `pi.MODEL` (Opus 5.5, medium thinking) with the default 60-minute timeout, on 3 workers per lane.
 - `benchmark.md` and `rubric.md` change only in commits of their own, never in an experiment's, and never to make a result pass.
 - Experiments never weaken the prompt's safety rules: hard stops, eligibility, never inventing facts, banned sites, never asking Adam.
 - Rules stay general. A note may describe an ATS (Workday, Greenhouse, Ashby), never a single employer or posting.

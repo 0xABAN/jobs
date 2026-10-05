@@ -20,8 +20,7 @@ SKILLS = [str(Path.home() / ".pi/agent/skills/write")]
 EXCLUDED_TOOLS = "AskClaude"
 
 # Apply agents' model and thinking level, fixed so Adam's interactive Pi defaults don't change them.
-# GPT through the Codex subscription keeps the apply agents off Adam's Claude usage.
-MODEL = "openai-codex/gpt-6-astra:medium"
+MODEL = "claude-bridge/claude-opus-5-5:medium"
 
 
 def run(prompt: Path, *, cwd: Path, log_dir: Path, timeout_minutes: float, model: str = MODEL) -> str:
