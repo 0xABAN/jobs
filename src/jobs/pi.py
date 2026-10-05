@@ -20,7 +20,7 @@ SKILLS = [str(Path.home() / ".pi/agent/skills/write")]
 EXCLUDED_TOOLS = "AskClaude"
 
 # Apply agents' model and thinking level, fixed so Adam's interactive Pi defaults don't change them.
-MODEL = "claude-bridge/claude-opus-5-5:low"
+MODEL = "openai-codex/gpt-6.1-sol:low"
 
 
 def run(prompt: Path, *, cwd: Path, log_dir: Path, timeout_minutes: float, model: str = MODEL) -> str:
