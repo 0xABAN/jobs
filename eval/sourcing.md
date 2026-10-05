@@ -15,7 +15,7 @@ While a pass runs, sourcing is your main work: keep the queue stocked so every p
 
 A pass takes the top job from each site section and deletes those lines. `## Priority` jobs run in the priority lane (`loop.md`), one at a time, followed by `## Other sites` when no Priority job can run. Reorder freely as better jobs turn up. Within each section, big tech comes first, then unicorns, top startups, and top quant firms, then the rest (`/tmp/jobs-eval/rank_queue.py` does this). Within a tier, a job Adam should *really* apply to goes first: a role that closely matches his resume, at a company he would likely want, or a posting that is new or closing soon, since early applicants get read. Jobs that fit but are on other sites go under "Other sites": passes don't apply to them yet, but Adam can see them.
 
-Before queuing a job, check that it isn't already queued, a fixed posting in `benchmark.md`, in the tracker's `Apps` or settled in `Failed`, or in `~/.jobs/apply.log`. Some employers cap applications per candidate (Coinbase allows 3 per 6 months), so at such a company queue only the best posting.
+Before queuing a job, check that it isn't already queued, a fixed posting in `benchmark.md`, in the tracker's `Apps` or settled in `Failed`, or in `~/.jobs/apply.log`. Some employers cap applications per candidate (Coinbase allows 3 per 6 months; Sierra allows one new-grad application), so at such a company queue only the best qualifying posting. Sierra's limit was shown on the actual form in run 20261005-082300-3; it does not state an internship cap.
 
 ## Where to look
 
