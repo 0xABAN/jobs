@@ -6,6 +6,7 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict
 
+from jobs import pi
 from jobs.apply.launcher import RUNS_DIR, apply
 from jobs.apply.timeline import timeline
 from jobs.apply.workers import running
@@ -23,7 +24,7 @@ def main() -> None:
     apply_command.add_argument("--dry-run", action="store_true", help="fill everything but do not submit")
     apply_command.add_argument("--workers", type=int, default=3, help="parallel workers, shared by every run (default 3)")
     apply_command.add_argument("--timeout", type=float, default=60, help="minutes before an agent is stopped (default 60)")
-    apply_command.add_argument("--model", help="Pi model pattern, e.g. claude-sonnet-5-5:low (default: Pi's)")
+    apply_command.add_argument("--model", default=pi.MODEL, help="Pi model pattern and thinking level (default: %(default)s)")
 
     commands.add_parser("status", help="list the jobs workers are applying to now")
 

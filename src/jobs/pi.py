@@ -19,8 +19,11 @@ SKILLS = [str(Path.home() / ".pi/agent/skills/write")]
 # The Claude provider's tool that hands work to a Claude Code agent; a headless agent must not spawn agents.
 EXCLUDED_TOOLS = "AskClaude"
 
+# Apply agents' model and thinking level, fixed so Adam's interactive Pi defaults don't change them.
+MODEL = "claude-bridge/claude-opus-5-5:low"
 
-def run(prompt: Path, *, cwd: Path, log_dir: Path, timeout_minutes: float, model: str | None = None) -> str:
+
+def run(prompt: Path, *, cwd: Path, log_dir: Path, timeout_minutes: float, model: str = MODEL) -> str:
     """Run Pi on ``prompt`` from ``cwd``, log its transcript in ``log_dir``, and return its final message.
 
     Pi loads ``cwd``'s ``.pi/mcp.json`` but no context files, so the prompt is its only
@@ -36,7 +39,7 @@ def run(prompt: Path, *, cwd: Path, log_dir: Path, timeout_minutes: float, model
         "--no-skills", *(arg for skill in SKILLS for arg in ("--skill", skill)),
         "--approve",  # load the .pi/mcp.json without a trust prompt
         "--exclude-tools", EXCLUDED_TOOLS,
-        *(["--model", model] if model else []),
+        "--model", model,
         f"@{prompt}",
     ]
     transcript_path = log_dir / "transcript.jsonl"
