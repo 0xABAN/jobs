@@ -1,11 +1,12 @@
 from jobs import tracker as tracker_module
+from jobs.apply.result import Result
 from jobs.sheets import Sheet
 from jobs.tracker import Tracker
 
 
 def test_skips_applied_jobs_and_settled_failures(monkeypatch):
     tabs = {
-        "Apps": [["Company", "URL"], ["Acme", "https://applied"]],
+        "Apps": [["jobs", "URL"], ["Acme", "https://applied"]],
         "Failed": [["URL", "Reason"], ["https://settled", "not_eligible"], ["https://retryable", "timeout"]],
     }
     monkeypatch.setattr(Sheet, "_call", lambda self, method, path, body=None: {"values": tabs[path.split("/")[-1]]})
@@ -15,6 +16,30 @@ def test_skips_applied_jobs_and_settled_failures(monkeypatch):
     assert tracker.skip_reason("https://settled") == "not_eligible"
     assert tracker.skip_reason("https://retryable") is None
     assert tracker.skip_reason("https://new") is None
+
+
+def test_records_company_under_the_apps_header(monkeypatch, tmp_path):
+    writes = []
+
+    def call(self, method, path, body=None):
+        if method == "POST":
+            writes.append((path, body))
+            return {}
+        if path == "/values/Failed":
+            return {"values": [["URL", "Reason"]]}
+        assert path == "/values/Apps%211%3A1"
+        return {"values": [["jobs", "Role", "Applied", "Salary", "fantastic.jobs Id", "URL"]]}
+
+    monkeypatch.setattr(tracker_module, "STATE_DIR", tmp_path)
+    monkeypatch.setattr(Sheet, "_call", call)
+    result = Result("applied", None, "Receipt confirmed", "Acme", "Engineer", "$100,000", None)
+
+    Tracker("sheet").record("https://job", result, "run-1")
+
+    today = tracker_module.date.today().isoformat()
+    assert writes == [("/values/Apps:append?valueInputOption=RAW", {
+        "values": [["Acme", "Engineer", today, "$100,000", "", "https://job"]],
+    })]
 
 
 def test_lists_each_account_site_once(monkeypatch, tmp_path):

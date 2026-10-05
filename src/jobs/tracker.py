@@ -40,7 +40,8 @@ class Tracker:
             number, failure = self.sheet.find(FAILED, "URL", url)
 
             if result.status == "applied":
-                self.sheet.append(APPLIED, {"Company": result.company, "Role": result.role,
+                # Apps names its company column "jobs"; Failed still uses "Company".
+                self.sheet.append(APPLIED, {"jobs": result.company, "Role": result.role,
                                             "Applied": date.today().isoformat(), "Salary": result.salary, "URL": url})
                 if number:
                     self.sheet.delete(FAILED, number)
