@@ -4,15 +4,16 @@ While a pass runs, sourcing is your main work: keep the queue stocked so every p
 
 ## The queue
 
-`~/.jobs/queue.md` holds the jobs waiting for a pass, one section per site, best first:
+`~/.jobs/queue.md` holds the jobs waiting for a pass, one section per site, best first, after a `## Priority` section for the jobs Adam singles out, on any site:
 
+    ## Priority
     ## Workday
     - [Adobe: 2027 University Graduate - Machine Learning Engineer](<url>): ML new grad; Python and PyTorch match
     ## Greenhouse
     ## Ashby
     ## Other sites
 
-A pass takes the top job from each of the first three sections and deletes those lines. Reorder freely as better jobs turn up. A job Adam should *really* apply to goes first: a role that closely matches his resume, at a company he would likely want, or a posting that is new or closing soon, since early applicants get read. Jobs that fit but are on other sites go under "Other sites": passes don't apply to them yet, but Adam can see them.
+A pass takes the top job from each site section and deletes those lines; while `## Priority` has jobs, it also takes the top one as a fourth live run, graded `other` unless it is on one of the three ATSs. Reorder freely as better jobs turn up. A job Adam should *really* apply to goes first: a role that closely matches his resume, at a company he would likely want, or a posting that is new or closing soon, since early applicants get read. Jobs that fit but are on other sites go under "Other sites": passes don't apply to them yet, but Adam can see them.
 
 Before queuing a job, check that it isn't already queued, a fixed posting in `benchmark.md`, in the tracker's `Apps` or settled in `Failed`, or in `~/.jobs/apply.log`.
 
