@@ -76,9 +76,11 @@ Fail with `not_eligible` only for an explicit hard requirement Adam cannot meet:
 5. Upload the resume first: many sites parse it and pre-fill fields. Check every pre-filled field against the profile and the resume, and fix mismatches.
 6. Fill every required field and every optional field the profile answers. On multi-page forms, fill each page and click Next or Continue.
 7. Verify before submitting: every field with `states.required` has a value, text values are correct, each dropdown showed the right choice in its screenshot, and the resume's filename appears on the page. Upload refs do not carry `states.required`, so check the resume separately.
-8. Submit, unless this is a dry run. Snapshot the page. Fix validation errors and retry; retries count toward the 3-attempt limit. Solve simple text or math CAPTCHAs; for any other visible CAPTCHA, fail with `captcha`.
+8. Submit, unless this is a dry run. Snapshot the page. Fix validation errors and retry; retries count toward the 3-attempt limit.
 9. Confirm: the page says the application was received, or a confirmation email arrived. Without either, fail with `unconfirmed`.
 10. End the browser session, then write the result.
+
+**CAPTCHAs, at any step:** solve simple text or math questions yourself. For a reCAPTCHA or Cloudflare check that blocks you, run `uv run --project ${repo_root} jobs captcha ${devtools_port}` from the shell; it solves the CAPTCHA in the page and prints JSON. Then redo the blocked action, such as clicking Submit again. If it prints an `error`, or the CAPTCHA comes back after one retry, fail with `captcha`. If the site emails a verification code instead, get it from Gmail as in step 4.
 
 ## Browser
 

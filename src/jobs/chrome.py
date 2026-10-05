@@ -72,6 +72,11 @@ def launch(profile: Path, url: str) -> int:
     return pid
 
 
+def devtools_port(profile: Path) -> int:
+    """Return the DevTools port of the Chrome running on ``profile``; Chrome picked it at launch."""
+    return int((profile / "DevToolsActivePort").read_text().split()[0])
+
+
 def close(pid: int) -> None:
     os.kill(pid, signal.SIGTERM)  # Chrome shuts down cleanly on SIGTERM
     _wait(lambda: not _alive(pid), seconds=10)

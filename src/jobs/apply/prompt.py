@@ -15,7 +15,8 @@ from jobs.config import REPO_ROOT
 TEMPLATE_PATH = Path(__file__).with_name("prompt.md")
 
 
-def render_prompt(job_url: str, *, dry_run: bool, profile: dict, today: date, session: str, chrome_pid: int) -> str:
+def render_prompt(job_url: str, *, dry_run: bool, profile: dict, today: date, session: str, chrome_pid: int,
+                  devtools_port: int) -> str:
     """Return the complete prompt for applying to one job in the Chrome the launcher opened."""
     if dry_run:
         run_mode = "**Dry run:** do everything except the final submit click, and finish with status `dry_run`."
@@ -29,6 +30,7 @@ def render_prompt(job_url: str, *, dry_run: bool, profile: dict, today: date, se
         repo_root=REPO_ROOT,
         session=session,
         chrome_pid=chrome_pid,
+        devtools_port=devtools_port,
         # The launcher, not the agent, keeps the tracker.
         profile=json.dumps({k: v for k, v in profile.items() if k != "tracker"}, indent=2, ensure_ascii=False),
     )

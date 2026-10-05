@@ -3,7 +3,9 @@ name = "jobs"
 version = "0.1.0"
 description = "Adam's automatic job-application harness"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "websockets>=15",
+]
 
 [project.scripts]
 jobs = "jobs.cli:main"

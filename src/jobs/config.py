@@ -18,3 +18,13 @@ STATE_DIR = Path.home() / ".jobs"
 def load_profile(path: Path = PROFILE_PATH) -> dict:
     """Read a profile file into a dict."""
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def env(name: str) -> str:
+    """Return a secret from the repo's gitignored ``.env`` file."""
+    for line in (REPO_ROOT / ".env").read_text(encoding="utf-8").splitlines():
+        key, _, value = line.partition("=")
+        if key.strip() == name:
+            return value.strip()
+
+    raise KeyError(f"{name} is not set in .env")

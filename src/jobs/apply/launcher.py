@@ -15,7 +15,7 @@ from jobs import pi
 from jobs.apply.prompt import render_prompt
 from jobs.apply.result import Result, parse_result
 from jobs.apply.workers import worker
-from jobs.chrome import chrome
+from jobs.chrome import chrome, devtools_port
 from jobs.config import STATE_DIR, load_profile
 from jobs.tracker import Tracker
 
@@ -40,8 +40,10 @@ def apply(url: str, *, dry_run: bool, timeout_minutes: float, workers: int, mode
         with chrome(directory / "chrome", url) as chrome_pid:
             run_dir.mkdir(parents=True, mode=0o700)
             prompt = run_dir / "prompt.md"
-            prompt.write_text(render_prompt(url, dry_run=dry_run, profile=profile, today=date.today(),
-                                            session=f"apply-{run_id}", chrome_pid=chrome_pid), encoding="utf-8")
+            prompt.write_text(render_prompt(
+                url, dry_run=dry_run, profile=profile, today=date.today(), session=f"apply-{run_id}",
+                chrome_pid=chrome_pid, devtools_port=devtools_port(directory / "chrome"),
+            ), encoding="utf-8")
             try:
                 result = parse_result(pi.run(prompt, cwd=directory, log_dir=run_dir,
                                              timeout_minutes=timeout_minutes, model=model))
@@ -55,4 +57,4 @@ def apply(url: str, *, dry_run: bool, timeout_minutes: float, workers: int, mode
         if not dry_run:
             tracker.record(url, result, run_id)
 
-    return result
+            

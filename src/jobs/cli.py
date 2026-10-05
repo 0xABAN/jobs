@@ -8,6 +8,7 @@ from dataclasses import asdict
 
 from jobs.apply.launcher import apply
 from jobs.apply.workers import running
+from jobs.captcha import solve
 from jobs.chrome import launch
 from jobs.config import CHROME_PROFILE
 
@@ -27,6 +28,9 @@ def main() -> None:
 
     browse = commands.add_parser("browse", help="open the jobs Chrome profile in the background and print its pid")
     browse.add_argument("url", nargs="?", default="about:blank")
+
+    captcha = commands.add_parser("captcha", help="solve the CAPTCHA blocking a page in a harness Chrome; print JSON")
+    captcha.add_argument("port", type=int, help="that Chrome's DevTools port")
 
     args = parser.parse_args()
 
@@ -50,3 +54,8 @@ def main() -> None:
 
     if args.command == "browse":
         print(launch(CHROME_PROFILE, args.url))
+
+    if args.command == "captcha":
+        outcome = solve(args.port)
+        print(json.dumps(outcome))
+        sys.exit("error" in outcome)

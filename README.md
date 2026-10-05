@@ -34,6 +34,12 @@ leaves its prompt, transcript, and result in `~/.jobs/runs/<run id>/`. Drop
 
 `uv run jobs browse <url>` opens the `jobs` profile itself, for browsing job boards.
 
+When a reCAPTCHA (v2, invisible v2, Enterprise) or Cloudflare Turnstile blocks an
+apply agent, it runs `uv run jobs captcha <devtools port>`, which finds the CAPTCHA
+through Chrome's DevTools protocol, has CapSolver solve it, and injects the token.
+It needs `CAPSOLVER_API_KEY` in `.env`. hCaptcha (Lever) is unsupported by CapSolver,
+and score-based reCAPTCHA v3 has nothing to solve.
+
 Run the tests with `uv run pytest`.
 
 Gmail uses `@artymclabin/gmail-mcp@1.2.3` with the `gmail.readonly` OAuth scope.
