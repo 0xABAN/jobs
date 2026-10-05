@@ -1,6 +1,8 @@
 {
   "personal": {
     "full_name": "YOUR_LEGAL_NAME",
+    "first_name": "YOUR_FIRST_NAME",
+    "last_name": "YOUR_LAST_NAME",
     "preferred_name": "YOUR_PREFERRED_NAME",
     "pronouns": "",
     "email": "your.email@example.com",
@@ -67,7 +69,6 @@
     "referrals": "None",
     "references": "None provided",
     "background_check_consent": "Yes",
-    "how_did_you_hear": "Online job board",
     "age_18_or_older": "",
     "criminal_conviction": ""
   },

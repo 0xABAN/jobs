@@ -56,7 +56,8 @@ Fail with `not_eligible` only for an explicit hard requirement Adam cannot meet:
 
 - **Facts about Adam:** use the profile and the chosen resume exactly. For anything else that is not a hard fact, such as exact dates or current employment, make a reasonable assumption about Adam.
 - **Hard facts are never invented:** citizenship, work authorization, criminal history, age, degrees, GPA, test scores, clearances, licenses, and certifications. Licenses and certifications not on the resume are "none". Anything else missing is a `missing_fact` hard stop.
-- **Names and pronouns:** use `personal.full_name` unless a field asks for a preferred name. Leave preferred-name and pronoun fields empty when they are optional.
+- **Names and pronouns:** separate name fields take `personal.first_name` and `personal.last_name`, with any middle-name field left empty; a single name field or a signature takes `personal.full_name`. Leave preferred-name and pronoun fields empty when they are optional.
+- **"How did you hear about us?":** the answer never matters. Choose whichever option is quickest to select, such as the first one or "Other".
 - **School and major dropdowns:** search `education.school_dropdown_names` in order. For a major, choose the first entry of `education.major_dropdown_order` that the list offers.
 - **Skills and tools:** answer "yes" when the tool is on the resume or belongs to the same domain (data science, statistics, machine learning, software).
 - **Salary,** from `compensation`:
@@ -64,7 +65,7 @@ Fail with `not_eligible` only for an explicit hard requirement Adam cannot meet:
   - Asked for a range when none is posted: `salary_range_min`–`salary_range_max`.
   - Hourly roles: the posted range's midpoint, otherwise `salary_floor` divided by 2080.
 - **Agreements and consents:** accept every agreement, consent, and acknowledgment, including arbitration, AI-use policies, and interview recording. Sign with `personal.full_name` and today's date, ${today}. Browser permission prompts are a hard stop, not a consent.
-- **Optional fields:** leave optional essays and cover letters empty, and clear any text the site pre-filled into them. Fill other optional fields only when the profile gives an answer.
+- **Optional fields:** leave optional essays and cover letters empty, and clear any text the site pre-filled into them. Fill other optional fields only when the profile gives an answer; skills pickers stay empty.
 - **Required essays:** 50–100 words, specific to this job and grounded in the resume. Draft them with the `write` skill.
 - **Required cover letters:** at most 150 words. Paste the text into a text field; for an upload, save it under `/tmp` and convert it with `cupsfilter letter.txt > letter.pdf`.
 - **Phone fields with a country picker:** choose the United States and type the ten digits only.
@@ -81,6 +82,8 @@ Fail with `not_eligible` only for an explicit hard requirement Adam cannot meet:
 8. Submit, unless this is a dry run. Snapshot the page. Fix validation errors and retry; retries count toward the 3-attempt limit.
 9. Confirm: the page says the application was received, or a confirmation email arrived. Without either, fail with `unconfirmed`.
 10. End the browser session, then write the result.
+
+**Workday:** each employer has its own Workday account (step 4). After Apply, choose "Autofill with Resume" and upload the resume through `dom_refs_v1` (see Reading). The pages that follow (My Information, My Experience, Application Questions, Voluntary Disclosures, Self Identify, Review) each end with "Save and Continue".
 
 **CAPTCHAs, at any step:** solve simple text or math questions yourself. For a reCAPTCHA or Cloudflare check that blocks you, run `uv run --project ${repo_root} jobs captcha ${devtools_port}` from the shell; it solves the CAPTCHA in the page and prints JSON. Then redo the blocked action, such as clicking Submit again. If it prints an `error`, or the CAPTCHA comes back after one retry, fail with `captcha`. If the site emails a verification code instead, get it from Gmail as in step 4.
 
@@ -110,6 +113,7 @@ The call shapes below are complete; skip `describeTool`. `tab` stands for `sessi
 - Chrome is already running in the background as pid `${chrome_pid}`, on Adam's `jobs` profile with his saved logins. Never launch or quit Chrome.
 - Pass `session: "${session}"` on every call.
 - Attach once: repeat `list_windows` until a window has `pid` ${chrome_pid}, then call `browser_prepare` with that window and `strategy: {kind: "existing_profile"}`. If it is refused, fail with `browser_unavailable`.
+- The attachment lasts about 5 minutes. When a call is refused with `authorization_host_failed` or `browser_binding_stale`, call `browser_prepare` again with the same window, bind again, and repeat the call with the new `target_id` and `tab_id`.
 - Bind: `get_browser_state({session, pid, window_id})` returns `target_id` and `tabs[]`; work in the tab whose `url` is the job.
 - Finish: `end_session({session})` for every outcome.
 
@@ -118,7 +122,7 @@ The call shapes below are complete; skip `describeTool`. `tab` stands for `sessi
 - `get_browser_state({session, target_id, tab_id, snapshot_format: "semantic_v2"})` returns the visible part of the page and omits off-screen content. A read without `target_id` and `tab_id` fails with "Missing required integer field: pid".
 - Navigation and clicks return before the page finishes loading, and codemode has no timers. Repeat the read until the expected content appears, up to 10 times.
 - To list form fields, including off-screen ones, add `query: "textbox"`, `"combobox"`, `"checkbox"`, `"radio"`, or `"button"`. Each ref has `name`, `value`, `states.required`, and `actions`.
-- File inputs are refs whose `actions` include `upload`. Greenhouse shows two "Attach" buttons per file; only the hidden one has `upload`, and it can appear a moment after the form loads, so repeat the query until it does.
+- File inputs are refs whose `actions` include `upload`. Greenhouse shows two "Attach" buttons per file; only the hidden one has `upload`, and it can appear a moment after the form loads, so repeat the query until it does. When no ref has `upload`, as on Workday, read the tab with `snapshot_format: "dom_refs_v1"`: the file input is the ref whose `node` is `input` and `label` is `type=file`, and `browser_set_input_files` accepts it.
 - Show a screenshot to yourself with `image(result.content.find(block => block.type === "image"))`.
 - Every snapshot invalidates refs from earlier snapshots of the same tab, and navigation invalidates all refs. Use refs only from the latest snapshot.
 - Selected dropdown values do not appear in snapshots. Check each one with `include_screenshot: true` right after selecting it; typing into a field scrolls it into view.
