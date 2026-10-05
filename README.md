@@ -10,19 +10,29 @@ Browser control uses the `cua-driver` MCP server on this Mac (`cua-driver mcp`).
 Its daemon must run with `--grant existing-profile` (`cua-driver status`), so it
 can attach to the Chrome the launcher starts.
 
-## Apply to a job
+## Apply to jobs
 
 Copy `profile.example.json` to `profile.json` and fill it in; it is gitignored.
-Then apply to one job:
+Then apply:
 
-    uv run jobs apply <url> --dry-run [--model claude-sonnet-5-5:low] [--timeout 15]
+    uv run jobs apply <url> [<url> ...] --dry-run [--workers 3] [--model claude-sonnet-5-5:low] [--timeout 15]
 
-The launcher opens the job in a background Chrome on the `jobs` profile with
-throttling off, runs a headless Pi agent on `src/jobs/apply/prompt.md` filled in
-with the job and `profile.json`, and prints the agent's JSON result. Pi runs from
-`~/.jobs/workers/0`, outside the repo, so this repo's `AGENTS.md` never reaches it.
-Each run leaves its prompt, transcript, and result in `~/.jobs/runs/<run id>/`.
-Drop `--dry-run` to submit.
+Jobs run in parallel on N workers, shared by every `jobs apply` process; extra
+jobs wait for a free one. Worker `n` lives in `~/.jobs/workers/<n>/`: a copy of
+the `jobs` Chrome profile and its logins (delete `chrome/` there to recopy after
+new logins), the directory its Pi agent runs in, outside the repo so this repo's
+`AGENTS.md` never reaches it, and a lock file naming the job it is on
+(`uv run jobs status` lists them).
+
+For each job, the launcher skips URLs the tracker already settles or another
+worker is on, opens the job in a background Chrome with throttling off, runs a
+headless Pi agent on `src/jobs/apply/prompt.md` filled in with the job and
+`profile.json`, and prints the agent's JSON result. Live runs are recorded in the
+tracker Sheet: `Apps` on success, `Failed` (one row per URL) otherwise. Each run
+leaves its prompt, transcript, and result in `~/.jobs/runs/<run id>/`. Drop
+`--dry-run` to submit.
+
+`uv run jobs browse <url>` opens the `jobs` profile itself, for browsing job boards.
 
 Run the tests with `uv run pytest`.
 

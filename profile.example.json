@@ -77,8 +77,6 @@
     "internship": "resumes/masters/Adam_Torres_Encarnacion_Resume_Masters.pdf"
   },
   "tracker": {
-    "sheet_id": "YOUR_GOOGLE_SHEET_ID",
-    "tab": "Apps",
-    "columns": ["Company", "Role", "Applied", "Salary", "Id"]
+    "sheet_id": "YOUR_GOOGLE_SHEET_ID"
   }
 }

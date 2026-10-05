@@ -19,7 +19,7 @@ def render_prompt(job_url: str, *, dry_run: bool, profile: dict, today: date, se
     if dry_run:
         run_mode = "**Dry run:** do everything except the final submit click, and finish with status `dry_run`."
     else:
-        run_mode = "**Live run:** submit the application once every check in step 8 passes."
+        run_mode = "**Live run:** submit the application once every check in step 7 passes."
 
     return Template(TEMPLATE_PATH.read_text(encoding="utf-8")).substitute(
         job_url=job_url,
@@ -28,5 +28,6 @@ def render_prompt(job_url: str, *, dry_run: bool, profile: dict, today: date, se
         repo_root=REPO_ROOT,
         session=session,
         chrome_pid=chrome_pid,
-        profile=json.dumps(profile, indent=2, ensure_ascii=False),
+        # The launcher, not the agent, keeps the tracker.
+        profile=json.dumps({k: v for k, v in profile.items() if k != "tracker"}, indent=2, ensure_ascii=False),
     )

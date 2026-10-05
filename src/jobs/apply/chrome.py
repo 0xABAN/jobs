@@ -12,6 +12,9 @@ import time
 from contextlib import contextmanager
 from pathlib import Path
 
+from jobs.config import STATE_DIR
+from jobs.lock import locked
+
 FLAGS = [
     "--remote-debugging-port=0",  # any free port; CUA finds it from the pid
     "--no-first-run",
@@ -26,7 +29,16 @@ FLAGS = [
 
 @contextmanager
 def chrome(profile: Path, url: str):
-    """Open ``url`` in a background Chrome on ``profile``, yield its pid, and quit it afterwards.
+    """Open ``url`` in a background Chrome on ``profile``, yield its pid, and quit it afterwards."""
+    pid = launch(profile, url)
+    try:
+        yield pid
+    finally:
+        close(pid)
+
+
+def launch(profile: Path, url: str) -> int:
+    """Open ``url`` in a background Chrome on ``profile`` and return its pid.
 
     Raises ``RuntimeError`` when another Chrome already uses the profile or
     this one does not start.
@@ -34,28 +46,35 @@ def chrome(profile: Path, url: str):
     if owner := _owner(profile):
         raise RuntimeError(f"Chrome (pid {owner}) is already using {profile}; quit it first")
 
-    # Chrome writes this file once its debugger listens; a stale copy would fake readiness.
-    (profile / "DevToolsActivePort").unlink(missing_ok=True)
-    previous_app = _frontmost_app()
+    # One launch at a time: parallel launches would hand focus to each other instead of Adam's app.
+    with locked(STATE_DIR / "chrome-launch.lock"):
+        # Chrome writes this file once its debugger listens; a stale copy would fake readiness.
+        (profile / "DevToolsActivePort").unlink(missing_ok=True)
+        previous_app = _frontmost_app()
 
-    # `-g` launches in the background; `-n` starts an instance apart from personal Chrome.
-    subprocess.run(
-        ["open", "-g", "-n", "-a", "Google Chrome", "--args", f"--user-data-dir={profile}", *FLAGS, url],
-        check=True,
-    )
-    if not _wait(lambda: (profile / "DevToolsActivePort").exists() and _owner(profile), seconds=30):
-        raise RuntimeError(f"Chrome did not start on {profile}")
+        # `-g` launches in the background; `-n` starts an instance apart from personal Chrome.
+        subprocess.run(
+            ["open", "-g", "-n", "-a", "Google Chrome", "--args", f"--user-data-dir={profile}", *FLAGS, url],
+            check=True,
+        )
+        if not _wait(lambda: (profile / "DevToolsActivePort").exists() and _owner(profile), seconds=30):
+            raise RuntimeError(f"Chrome did not start on {profile}")
 
-    pid = _owner(profile)
-    try:
-        # Chrome still takes focus when its window opens; hand it back to whatever Adam was using.
-        if _wait(lambda: _frontmost_app() == pid, seconds=5):
-            _appkit(f"$.NSRunningApplication.runningApplicationWithProcessIdentifier({previous_app}).activateWithOptions(0)")
+        pid = _owner(profile)
+        try:
+            # Chrome still takes focus when its window opens; hand it back to whatever Adam was using.
+            if _wait(lambda: _frontmost_app() == pid, seconds=5):
+                _appkit(f"$.NSRunningApplication.runningApplicationWithProcessIdentifier({previous_app}).activateWithOptions(0)")
+        except BaseException:
+            close(pid)
+            raise
 
-        yield pid
-    finally:
-        os.kill(pid, signal.SIGTERM)  # Chrome shuts down cleanly on SIGTERM
-        _wait(lambda: not _alive(pid), seconds=10)
+    return pid
+
+
+def close(pid: int) -> None:
+    os.kill(pid, signal.SIGTERM)  # Chrome shuts down cleanly on SIGTERM
+    _wait(lambda: not _alive(pid), seconds=10)
 
 
 def _owner(profile: Path) -> int | None:

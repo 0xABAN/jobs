@@ -9,19 +9,20 @@ Never ask Adam a question and never wait for input. Adam's profile is at the end
 - **URL:** ${job_url}
 - ${run_mode}
 - **Resume:** `resumes.full_time` for full-time and new-grad roles, `resumes.internship` for internships. Paths are relative to `${repo_root}`. Read the chosen one with `pdftotext -layout <path> -` before filling anything.
-- **Tracker:** the `tracker.tab` tab of Google Sheet `tracker.sheet_id`, through the Google Sheets MCP.
 
 ## Result
 
 End your final message with the result as one JSON object in a `json` code block, with nothing after it:
 
 ```json
-{"status": "failed", "reason": "missing_fact", "explanation": "The form requires a criminal-conviction answer that the profile does not give."}
+{"status": "failed", "reason": "missing_fact", "explanation": "The form requires a criminal-conviction answer that the profile does not give.", "company": "Example Robotics", "role": "Data Science Intern", "salary": "$$45–$$55/hour"}
 ```
 
 - `status`: `applied` (submitted, and the employer confirmed it), `dry_run` (everything filled in a dry run, Submit not clicked), or `failed`.
 - `reason`: `null` unless `status` is `failed`. Then it is one of `expired`, `captcha`, `login_issue`, `already_applied`, `excluded_company`, `not_eligible`, `missing_fact`, `sso_required`, `sensitive_request`, `unsafe_permissions`, `not_a_job_application`, `email_only`, `unconfirmed`, `stuck`, `page_error`, or `browser_unavailable`.
 - `explanation`: one sentence. For `missing_fact`, name the question that the profile must answer.
+- `company`, `role`: as the posting names them; `null` if you never read the posting.
+- `salary`: the posted pay range as written, or `null` when the posting has none.
 
 "Fail with `x`" below means `status` `failed` and `reason` `x`.
 
@@ -30,7 +31,7 @@ End your final message with the result as one JSON object in a `json` code block
 Stop immediately and fail with the matching reason when:
 
 - the company is in `excluded_companies` → `excluded_company`;
-- the tracker already lists this company and role → `already_applied`;
+- the site says Adam has already applied → `already_applied`;
 - the posting is closed or no longer accepts applications → `expired`;
 - the posting has a hard requirement Adam cannot meet (see Eligibility) → `not_eligible`;
 - a required question asks for a hard fact that neither the profile nor the resume answers → `missing_fact`;
@@ -68,18 +69,16 @@ Fail with `not_eligible` only for an explicit hard requirement Adam cannot meet:
 
 ## Steps
 
-1. Check the hard-stop list for an excluded company, then the tracker for an existing row with the same company and role.
-2. Attach to Chrome (see Browser); it is already open on the job URL.
-3. Read the posting: company, role, location, eligibility, salary range, and job ID. Confirm that the page matches the job you were given.
-4. Click Apply. If a new tab or window opens, continue there.
-5. Login wall: continue if already signed in. Prefer "apply as guest" or "continue without an account". Otherwise sign in, or create an account, with `personal.email` and `personal.password`; if the password is empty or neither works, fail with `login_issue`. For a verification code or link, search Gmail narrowly by company and Adam's email, and use only that message.
-6. Upload the resume first: many sites parse it and pre-fill fields. Check every pre-filled field against the profile and the resume, and fix mismatches.
-7. Fill every required field and every optional field the profile answers. On multi-page forms, fill each page and click Next or Continue.
-8. Verify before submitting: every field with `states.required` has a value, text values are correct, each dropdown showed the right choice in its screenshot, and the resume's filename appears on the page. Upload refs do not carry `states.required`, so check the resume separately.
-9. Submit, unless this is a dry run. Snapshot the page. Fix validation errors and retry; retries count toward the 3-attempt limit. Solve simple text or math CAPTCHAs; for any other visible CAPTCHA, fail with `captcha`.
-10. Confirm: the page says the application was received, or a confirmation email arrived. Without either, fail with `unconfirmed`.
-11. Log the application in the tracker with the columns in `tracker.columns`, matching existing rows. Preserve existing `Id` values, and leave `Id` blank when the posting has none. Log only applications whose status is `applied`.
-12. End the browser session, then write the result.
+1. Attach to Chrome (see Browser); it is already open on the job URL.
+2. Read the posting: company, role, location, eligibility, and salary range. Confirm that the page matches the job you were given, and check the hard stops.
+3. Click Apply. If a new tab or window opens, continue there.
+4. Login wall: continue if already signed in. Prefer "apply as guest" or "continue without an account". Otherwise sign in, or create an account, with `personal.email` and `personal.password`; if the password is empty or neither works, fail with `login_issue`. For a verification code or link, search Gmail narrowly by company and Adam's email, and use only that message.
+5. Upload the resume first: many sites parse it and pre-fill fields. Check every pre-filled field against the profile and the resume, and fix mismatches.
+6. Fill every required field and every optional field the profile answers. On multi-page forms, fill each page and click Next or Continue.
+7. Verify before submitting: every field with `states.required` has a value, text values are correct, each dropdown showed the right choice in its screenshot, and the resume's filename appears on the page. Upload refs do not carry `states.required`, so check the resume separately.
+8. Submit, unless this is a dry run. Snapshot the page. Fix validation errors and retry; retries count toward the 3-attempt limit. Solve simple text or math CAPTCHAs; for any other visible CAPTCHA, fail with `captcha`.
+9. Confirm: the page says the application was received, or a confirmation email arrived. Without either, fail with `unconfirmed`.
+10. End the browser session, then write the result.
 
 ## Browser
 
