@@ -16,3 +16,5 @@ When Adam asks you to apply to jobs (for example "apply to all internships via j
 To retry failures, run `jobs apply` again on URLs from the `Failed` tab; jobs whose failure settles them (such as `not_eligible` or `unconfirmed`) are skipped. Retry `missing_fact` and `login_issue` only after Adam updates `profile.json`. Never apply in your own browser.
 
 Adam's answers live in `profile.json` (gitignored; `profile.example.json` shows its shape), and the apply agent's instructions are `src/jobs/apply/prompt.md`. Each run's prompt, transcript, and result are in `~/.jobs/runs/<run id>/`.
+
+To improve the harness while applying, follow `eval/loop.md`.
