@@ -20,8 +20,9 @@ Two experiments run at once, each in a lane: a git worktree of its own with 3 of
 |---|---|---|---|
 | a | `~/.jobs/lanes/a` | 0–2 | `--first-worker 0` |
 | b | `~/.jobs/lanes/b` | 3–5 | `--first-worker 3` |
+| priority | `~/.jobs/lanes/dev` | 6 | `--workers 1 --first-worker 6` |
 
-Make an experiment's change in its lane and run its passes from there. The main checkout, `~/dev/jobs`, only receives records. A lane with no experiment ready measures a baseline of `main`. Each lane links `profile.json`, `.env`, `.mcp`, and `.pi/mcp.json` to the main checkout's; recreate a lost one with `git worktree add --detach ~/.jobs/lanes/<lane> main` and those links.
+The priority lane applies to the `## Priority` jobs Adam picks, one at a time, on `main` plus any fix those sites need (such as a site whose markup defeats semantic reads); its runs are graded `other` and belong to no experiment, so its fixes reach `main` only through an experiment. Make an experiment's change in its lane and run its passes from there. The main checkout, `~/dev/jobs`, only receives records. A lane with no experiment ready measures a baseline of `main`. Each lane links `profile.json`, `.env`, `.mcp`, and `.pi/mcp.json` to the main checkout's; recreate a lost one with `git worktree add --detach ~/.jobs/lanes/<lane> main` and those links.
 
 To record a verdict, carry the lane's change to the main checkout: `git -C ~/.jobs/lanes/<lane> diff > /tmp/lane.diff` (after `git add -N` for any new file), then `git apply -3 /tmp/lane.diff` in `~/dev/jobs`, and commit as below. Then restart the lane from `main`: `git -C ~/.jobs/lanes/<lane> checkout -- .` and `git -C ~/.jobs/lanes/<lane> checkout --detach main`. When the other lane's change reached `main` first, keep both; if the patch conflicts, resolve it by hand, and say in the record that the change was measured without the other one.
 
@@ -29,7 +30,7 @@ Six workers take most of the Mac's memory. If `memory_pressure` reports less tha
 
 ## One pass (about 25 minutes)
 
-1. Take the top Workday, Greenhouse, and Ashby jobs from the queue (`sourcing.md`), plus the top Priority job while there is one. If a section is empty, take the next job from another and note it in the record.
+1. Take the top Workday, Greenhouse, and Ashby jobs from the queue (`sourcing.md`). If a section is empty, take the next job from another and note it in the record. Priority jobs go to the priority lane instead.
 2. From the lane's checkout, launch the live applications, Workday first because it takes about 25 minutes, and 30 seconds later the fixed dry runs, so the live runs claim the lane's 3 workers first:
 
        nohup uv run jobs apply --first-worker <0 or 3> <workday> <greenhouse> <ashby> >> ~/.jobs/apply.log 2>&1 &
