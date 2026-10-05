@@ -9,8 +9,15 @@ import time
 from pathlib import Path
 from typing import IO
 
-# Extension tools a headless agent must not use: they spawn agents or message other Pi sessions.
-EXCLUDED_TOOLS = "Agent,SubagentWorkflow,get_subagent_result,steer_subagent,intercom,create_goal,todo"
+# The only extensions an apply agent needs: MCP servers, codemode, and the Claude provider. Adam's
+# other global extensions would add seconds to every start, and tools a headless agent must not have.
+EXTENSIONS = ["builtin:mcp", "builtin:codemode", str(Path.home() / ".pi/agent/npm/node_modules/pi-claude-bridge")]
+
+# The only skill the apply prompt uses, for required essays.
+SKILLS = [str(Path.home() / ".pi/agent/skills/write")]
+
+# The Claude provider's tool that hands work to a Claude Code agent; a headless agent must not spawn agents.
+EXCLUDED_TOOLS = "AskClaude"
 
 
 def run(prompt: Path, *, cwd: Path, log_dir: Path, timeout_minutes: float, model: str | None = None) -> str:
@@ -25,6 +32,8 @@ def run(prompt: Path, *, cwd: Path, log_dir: Path, timeout_minutes: float, model
     command = [
         "pi", "--mode", "json", "--no-session",
         "--no-context-files",
+        "--no-extensions", *(arg for extension in EXTENSIONS for arg in ("-e", extension)),
+        "--no-skills", *(arg for skill in SKILLS for arg in ("--skill", skill)),
         "--approve",  # load the .pi/mcp.json without a trust prompt
         "--exclude-tools", EXCLUDED_TOOLS,
         *(["--model", model] if model else []),
