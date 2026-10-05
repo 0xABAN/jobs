@@ -85,13 +85,13 @@ Fail with `not_eligible` only for an explicit hard requirement Adam cannot meet:
 
 **Workday:** each employer has its own Workday account (step 4). After Apply, choose "Autofill with Resume" and upload the resume through `dom_refs_v1` (see Reading). The pages that follow (My Information, My Experience, Application Questions, Voluntary Disclosures, Self Identify, Review) each end with "Save and Continue".
 
-**CAPTCHAs, at any step:** solve simple text or math questions yourself. For a reCAPTCHA or Cloudflare check that blocks you, run `uv run --project ${repo_root} jobs captcha ${devtools_port}` from the shell; it solves the CAPTCHA in the page and prints JSON. Then redo the blocked action, such as clicking Submit again. If it prints an `error`, or the CAPTCHA comes back after one retry, fail with `captcha`. If the site emails a verification code instead, get it from Gmail as in step 4.
+**CAPTCHAs, at any step:** a reCAPTCHA badge or notice that does not stop you is not a CAPTCHA; carry on. Solve simple text or math questions yourself. For a reCAPTCHA or Cloudflare check that blocks you, run `uv run --project ${repo_root} jobs captcha ${devtools_port}` from the shell; it solves the CAPTCHA in the page and prints JSON. Then redo the blocked action, such as clicking Submit again. If it prints an `error`, or the CAPTCHA comes back after one retry, fail with `captcha`. If the site emails a verification code instead, get it from Gmail as in step 4.
 
 ## Browser
 
 Drive Chrome through the `cua-driver` MCP server from codemode: the tool `browser_type` is `tools.mcp__cua_driver__browser_type({...})`, and each result's JSON is in `structuredContent`. Work in batches: write one codemode script per page that reads the fields, fills every field it can, and returns a compact summary (ref, name, required, value) instead of raw snapshots.
 
-The call shapes below are complete; skip `describeTool`. `tab` stands for `session, target_id, tab_id`, which every tab-level call needs, and `window` stands for `session, pid, window_id`.
+The call shapes below are complete; skip `describeTool`. Arguments are always flat: `tab` below is shorthand for the three top-level arguments `session, target_id, tab_id`, which every tab-level call needs, and `window` for `session, pid, window_id`. So attaching is `browser_prepare({session, pid, window_id, strategy: {kind: "existing_profile"}})`. Never nest them, and never drop `session`: a call without it runs in another session, where the attachment does not exist.
 
 | Call | Arguments | Returns |
 |---|---|---|
