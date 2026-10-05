@@ -103,7 +103,7 @@ The call shapes below are complete; skip `describeTool`. Arguments are always fl
 | `get_browser_state` (read) | `tab, snapshot_format, query?, include_screenshot?` | `refs[]`, `content_refs[]`; a screenshot is an image block in `content` |
 | `browser_navigate` | `tab, url` | |
 | `browser_type` | `tab, ref, text, replace, mode?` | |
-| `get_window_state` | `window, max_elements: 5000` | `elements[]` with `element_token`, `role`, `label` |
+| `get_window_state` | `window, max_elements: 5000, timeout_ms: 5000` | `elements[]` with `element_token`, `role`, `label` |
 | `click` | `window, element_token` | `effect` |
 | `press_key` | `window, key` | `effect` |
 | `browser_set_input_files` | `tab, ref, files` | |
@@ -134,7 +134,7 @@ The call shapes below are complete; skip `describeTool`. Arguments are always fl
 - Text: `browser_type({..., ref, text, replace: true})`. Email inputs refuse `replace`; type into them while empty without it.
 - Dropdowns whose `combobox` ref has the `type` action: `browser_type({..., ref, text: <option text>, replace: true, mode: "keystrokes"})` opens and filters the list; then `press_key({window, key: "return"})` selects the focused option.
 - Native dropdowns, whose `combobox` ref lacks `type`, are `AXPopUpButton` elements in `get_window_state`: `click` the button, take a new `get_window_state`, `click` the first `AXMenuItem` after the button whose `label` is the option, then `press_key({window, key: "escape"})`. A copy of the menu in a separate window refuses clicks with `element_outside_target_window`.
-- Buttons, links, checkboxes, and radios: `click({window, element_token})`, with the token of the element whose `role` (`AXButton`, `AXLink`, `AXCheckBox`, `AXRadioButton`) and `label` match, from `get_window_state`. It returns about 1 MB, so filter it inside the script. Each call invalidates the tokens from the previous one.
+- Buttons, links, checkboxes, and radios: `click({window, element_token})`, with the token of the element whose `role` (`AXButton`, `AXLink`, `AXCheckBox`, `AXRadioButton`) and `label` match, from `get_window_state`. It returns about 1 MB, so filter it inside the script. Each call invalidates the tokens from the previous one. The tree walk stops at `timeout_ms` and marks the result `truncated: true`; a truncated tree can lack the very button you need, such as Submit at the bottom of a long form. Pass `timeout_ms: 5000`, and if the result is still truncated, call again with `query` set to the label.
 - Never use `browser_click`: its clicks are untrusted, so sites ignore them and block the pop-ups they open. Never use `delivery_mode: "foreground"`.
 - An `"unverifiable"` effect is normal; check the outcome with a snapshot.
 - Files: `browser_set_input_files({..., ref, files: [<absolute path>]})`.
