@@ -32,7 +32,8 @@ def fake_run(monkeypatch, tmp_path, agent_result: str) -> list:
     def chrome(profile, url):
         yield 4242
 
-    profile = {"personal": {"email": "adam@example.com"}, "tracker": {"sheet_id": "S"}}
+    profile = {"personal": {"email": "adam@example.com", "email_by_employer": {"NVIDIA": "adam@school.edu"}},
+               "tracker": {"sheet_id": "S"}}
     monkeypatch.setattr(launcher, "load_profile", lambda: profile)
     monkeypatch.setattr(launcher, "Tracker", Tracker)
     monkeypatch.setattr(launcher, "worker", worker)
@@ -63,6 +64,15 @@ def test_dry_runs_record_only_the_account_they_used(monkeypatch, tmp_path):
     launcher.apply("https://example.com/job", dry_run=True, timeout_minutes=1, workers=1)
 
     assert recorded == [("acme.wd5.myworkdayjobs.com", "adam@example.com")]
+
+
+def test_records_an_account_under_the_employers_own_email(monkeypatch, tmp_path):
+    recorded = fake_run(monkeypatch, tmp_path, '{"status": "dry_run", "reason": null, "explanation": "Filled.",'
+                                               ' "company": "NVIDIA", "account": "nvidia.wd5.myworkdayjobs.com"}')
+
+    launcher.apply("https://example.com/job", dry_run=True, timeout_minutes=1, workers=1)
+
+    assert recorded == [("nvidia.wd5.myworkdayjobs.com", "adam@school.edu")]
 
 
 def test_prunes_all_but_results_from_runs_older_than_three_hours(monkeypatch, tmp_path):

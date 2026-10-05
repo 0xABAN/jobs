@@ -25,6 +25,19 @@ def load_profile(path: Path = PROFILE_PATH) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def email_for(profile: dict, company: str | None) -> str:
+    """Return the email Adam applies with at ``company``: his ``email_by_employer`` entry for it, else his main email.
+
+    An entry matches when its key appears in the company's name, ignoring case, so "NVIDIA" covers "NVIDIA Corporation".
+    """
+    personal = profile["personal"]
+    for employer, email in personal.get("email_by_employer", {}).items():
+        if company and employer.lower() in company.lower():
+            return email
+
+    return personal["email"]
+
+
 def banned(url: str) -> bool:
     """Return whether ``url`` is on one of the ``BANNED_SITES``."""
     host = urllib.parse.urlparse(url).hostname or ""

@@ -19,7 +19,7 @@ from jobs.apply.prompt import render_prompt
 from jobs.apply.result import Result, parse_result
 from jobs.apply.workers import worker
 from jobs.chrome import chrome, devtools_port
-from jobs.config import STATE_DIR, banned, load_profile
+from jobs.config import STATE_DIR, banned, email_for, load_profile
 from jobs.tracker import Tracker
 
 RUNS_DIR = STATE_DIR / "runs"
@@ -75,7 +75,7 @@ def apply(url: str, *, dry_run: bool, timeout_minutes: float, workers: int, firs
 
             # Dry runs sign in and create accounts for real, so their accounts are recorded too.
             if result.account:
-                tracker.record_account(result.account, profile["personal"]["email"])
+                tracker.record_account(result.account, email_for(profile, result.company))
         finally:
             stopwatch.lap("record")
             record = {"url": url, "dry_run": dry_run, **asdict(result), "phases": stopwatch.laps}
