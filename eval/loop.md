@@ -20,9 +20,9 @@ Two experiments run at once, each in a lane: a git worktree of its own with 3 of
 |---|---|---|---|
 | a | `~/.jobs/lanes/a` | 0–2 | `--first-worker 0` |
 | b | `~/.jobs/lanes/b` | 3–5 | `--first-worker 3` |
-| priority | `~/.jobs/lanes/dev` | 6 | `--workers 1 --first-worker 6` |
+| priority | `~/.jobs/lanes/dev` | one idle slot in 0–5 | `--workers 1 --first-worker <slot>` |
 
-The priority lane applies to the `## Priority` jobs Adam picks, then to `## Other sites` when no Priority job can run, one at a time, on `main` plus any fix those sites need (such as a site whose markup defeats semantic reads); its runs are graded `other` and belong to no experiment, so its fixes reach `main` only through an experiment. Make an experiment's change in its lane and run its passes from there. The main checkout, `~/dev/jobs`, only receives records. A lane with no experiment ready measures a baseline of `main`. Each lane links `profile.json`, `.env`, `.mcp`, and `.pi/mcp.json` to the main checkout's; recreate a lost one with `git worktree add --detach ~/.jobs/lanes/<lane> main` and those links.
+The priority lane shares the six worker slots; it never adds a seventh. Launch it on an idle slot, and do not start that slot’s experiment pass until its priority batch ends. It applies to the `## Priority` jobs Adam picks, then to `## Other sites` when no Priority job can run, one at a time, on `main` plus any fix those sites need (such as a site whose markup defeats semantic reads); its runs are graded `other` and belong to no experiment, so its fixes reach `main` only through an experiment. Make an experiment's change in its lane and run its passes from there. The main checkout, `~/dev/jobs`, only receives records. A lane with no experiment ready measures a baseline of `main`. Each lane links `profile.json`, `.env`, `.mcp`, and `.pi/mcp.json` to the main checkout's; recreate a lost one with `git worktree add --detach ~/.jobs/lanes/<lane> main` and those links.
 
 To record a verdict, carry the lane's change to the main checkout: `git -C ~/.jobs/lanes/<lane> diff > /tmp/lane.diff` (after `git add -N` for any new file), then `git apply -3 /tmp/lane.diff` in `~/dev/jobs`, and commit as below. Then restart the lane from `main`: `git -C ~/.jobs/lanes/<lane> checkout -- .` and `git -C ~/.jobs/lanes/<lane> checkout --detach main`. When the other lane's change reached `main` first, keep both; if the patch conflicts, resolve it by hand, and say in the record that the change was measured without the other one.
 
@@ -73,7 +73,7 @@ A run's time is the sum of the `phases` in its `result.json` minus `worker`, the
 
     for path in sorted(Path.home().glob(".jobs/runs/*/result.json")):
         worker = int(path.parent.name.rsplit("-", 1)[1])
-        if first <= path.parent.name <= last and "ab"[worker // 3] == lane:
+        if first <= path.parent.name <= last and 0 <= worker < 6 and "ab"[worker // 3] == lane:
             run = json.loads(path.read_text())
             if "infra" in run["grade"]:
                 continue
