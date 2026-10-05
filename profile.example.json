@@ -46,6 +46,7 @@
     "school_dropdown_names": ["Your University"],
     "degrees": "B.S. in Your Major",
     "gpa": "",
+    "highest_completed_degree": "",
     "graduation": "",
     "enrollment": "",
     "major_dropdown_order": ["Your Major"],
