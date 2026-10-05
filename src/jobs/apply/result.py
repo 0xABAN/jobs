@@ -18,6 +18,7 @@ class Result:
     company: str | None = None
     role: str | None = None
     salary: str | None = None  # the posted pay range, as written
+    account: str | None = None  # the host of the site whose account the agent used, such as a Workday tenant
 
 
 def parse_result(final_message: str) -> Result:

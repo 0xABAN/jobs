@@ -2,7 +2,8 @@
 
 Each run leaves ``~/.jobs/runs/<run id>/`` with the prompt, the agent's JSONL
 transcript, and ``result.json``. The prompt embeds Adam's profile, so the
-directory is private to his account. Live runs are also recorded in the tracker.
+directory is private to his account. Live runs are also recorded in the tracker,
+and so is any account an agent used, in dry runs too.
 """
 
 import json
@@ -59,5 +60,9 @@ def apply(url: str, *, dry_run: bool, timeout_minutes: float, workers: int, mode
         # Record while still holding the worker, so no other worker starts this URL in between.
         if not dry_run:
             tracker.record(url, result, run_id)
+
+        # Dry runs sign in and create accounts for real, so their accounts are recorded too.
+        if result.account:
+            tracker.record_account(result.account, profile["personal"]["email"])
 
     return result

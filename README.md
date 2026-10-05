@@ -25,12 +25,14 @@ new logins), the directory its Pi agent runs in, outside the repo so this repo's
 (`uv run jobs status` lists them).
 
 For each job, the launcher skips URLs on a banned site (`BANNED_SITES` in
-`src/jobs/config.py`), the tracker already settles, or another worker is on, opens the job in a background Chrome with throttling off, runs a
-headless Pi agent on `src/jobs/apply/prompt.md` filled in with the job and
-`profile.json`, and prints the agent's JSON result. Live runs are recorded in the
-tracker Sheet: `Apps` on success, `Failed` (one row per URL) otherwise. Each run
-leaves its prompt, transcript, and result in `~/.jobs/runs/<run id>/`. Drop
-`--dry-run` to submit.
+`src/jobs/config.py`), the tracker already settles, or another worker is on, opens
+the job in a background Chrome with throttling off, runs a headless Pi agent on
+`src/jobs/apply/prompt.md` filled in with the job and `profile.json`, and prints
+the agent's JSON result. Live runs are recorded in the tracker Sheet: `Apps` on
+success, `Failed` (one row per URL) otherwise. Every run, dry or live, lists the
+site of any account its agent used or created in `Logins`; all of them use the
+profile's email and password. Each run leaves its prompt, transcript, and result
+in `~/.jobs/runs/<run id>/`. Drop `--dry-run` to submit.
 
 `uv run jobs browse <url>` opens the `jobs` profile itself, for browsing job boards.
 

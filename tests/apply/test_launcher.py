@@ -4,7 +4,8 @@ from jobs.apply import launcher
 from jobs.apply.result import Result
 
 
-def test_apply_records_and_returns_the_agents_result(monkeypatch, tmp_path):
+def fake_run(monkeypatch, tmp_path, agent_result: str) -> list:
+    """Make ``apply`` run without Chrome, Pi, or the Sheet; return the list the fake tracker records into."""
     recorded = []
 
     class Tracker:
@@ -17,6 +18,9 @@ def test_apply_records_and_returns_the_agents_result(monkeypatch, tmp_path):
         def record(self, url, result, run_id):
             recorded.append(result)
 
+        def record_account(self, site, email):
+            recorded.append((site, email))
+
     @contextmanager
     def worker(url, count):
         yield tmp_path / "0"
@@ -25,19 +29,33 @@ def test_apply_records_and_returns_the_agents_result(monkeypatch, tmp_path):
     def chrome(profile, url):
         yield 4242
 
-    final_message = '```json\n{"status": "applied", "reason": null, "explanation": "Submitted."}\n```'
-    monkeypatch.setattr(launcher, "load_profile", lambda: {"tracker": {"sheet_id": "S"}})
+    profile = {"personal": {"email": "adam@example.com"}, "tracker": {"sheet_id": "S"}}
+    monkeypatch.setattr(launcher, "load_profile", lambda: profile)
     monkeypatch.setattr(launcher, "Tracker", Tracker)
     monkeypatch.setattr(launcher, "worker", worker)
     monkeypatch.setattr(launcher, "chrome", chrome)
     monkeypatch.setattr(launcher, "devtools_port", lambda profile: 9333)
     monkeypatch.setattr(launcher, "RUNS_DIR", tmp_path / "runs")
-    monkeypatch.setattr(launcher.pi, "run", lambda prompt, **options: final_message)
+    monkeypatch.setattr(launcher.pi, "run", lambda prompt, **options: f"```json\n{agent_result}\n```")
+    return recorded
+
+
+def test_apply_records_and_returns_the_agents_result(monkeypatch, tmp_path):
+    recorded = fake_run(monkeypatch, tmp_path, '{"status": "applied", "reason": null, "explanation": "Submitted."}')
 
     result = launcher.apply("https://example.com/job", dry_run=False, timeout_minutes=1, workers=1)
 
     assert result == Result("applied", None, "Submitted.")
     assert recorded == [result]
+
+
+def test_dry_runs_record_only_the_account_they_used(monkeypatch, tmp_path):
+    recorded = fake_run(monkeypatch, tmp_path, '{"status": "dry_run", "reason": null, "explanation": "Filled.",'
+                                               ' "account": "acme.wd5.myworkdayjobs.com"}')
+
+    launcher.apply("https://example.com/job", dry_run=True, timeout_minutes=1, workers=1)
+
+    assert recorded == [("acme.wd5.myworkdayjobs.com", "adam@example.com")]
 
 
 def test_skips_banned_sites_without_claiming_a_worker(monkeypatch):

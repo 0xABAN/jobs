@@ -10,7 +10,7 @@ When Adam asks you to apply to jobs (for example "apply to all internships via j
 3. Take each job's own application URL, the employer's page behind the board's Apply button. Never LinkedIn Easy Apply, and skip applications hosted on a site in `BANNED_SITES` (`src/jobs/config.py`; today, Lever).
 4. Start them in the background and keep working; never wait for them:
    `nohup uv run jobs apply <url> <url> ... >> ~/.jobs/apply.log 2>&1 &`
-   All runs share 3 workers, and extra jobs wait for a free one. Each job is checked against the tracker, applied by its own headless agent, and recorded in the tracker: `Apps` on success, `Failed` otherwise. `~/.jobs/apply.log` gets one JSON line per finished job.
+   All runs share 3 workers, and extra jobs wait for a free one. Each job is checked against the tracker, applied by its own headless agent, and recorded in the tracker: `Apps` on success, `Failed` otherwise. `Logins` lists the sites where agents used or created an account for Adam, all with his profile email and password. `~/.jobs/apply.log` gets one JSON line per finished job.
 5. `uv run jobs status` lists what the workers are applying to now. Report results from the log and the tracker.
 
 To retry failures, run `jobs apply` again on URLs from the `Failed` tab; jobs whose failure settles them (such as `not_eligible` or `unconfirmed`) are skipped. Retry `missing_fact` and `login_issue` only after Adam updates `profile.json`. Never apply in your own browser.

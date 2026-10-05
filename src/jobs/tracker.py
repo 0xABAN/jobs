@@ -1,7 +1,9 @@
-"""The application tracker: a Google Sheet with an ``Apps`` tab and a ``Failed`` tab.
+"""The application tracker: a Google Sheet with ``Apps``, ``Failed``, and ``Logins`` tabs.
 
 ``Apps`` lists submitted applications. ``Failed`` holds the latest failure of each job
-that has not succeeded, one row per URL.
+that has not succeeded, one row per URL. ``Logins`` lists the sites where apply agents
+used or created an account for Adam. Every such account uses the profile's email and
+password, so the Sheet never holds a password.
 """
 
 from datetime import date, datetime
@@ -10,7 +12,7 @@ from jobs.config import STATE_DIR
 from jobs.lock import locked
 from jobs.sheets import Sheet
 
-APPLIED, FAILED = "Apps", "Failed"
+APPLIED, FAILED, LOGINS = "Apps", "Failed", "Logins"
 
 # Failures that settle a job: retrying cannot change them, or risks submitting twice.
 FINAL_REASONS = {
@@ -51,3 +53,15 @@ class Tracker:
                 self.sheet.update(FAILED, number, row)
             else:
                 self.sheet.append(FAILED, row)
+
+    def record_account(self, site: str, email: str) -> None:
+        """Note that an agent used Adam's account on ``site`` today, listing the site the first time."""
+        today = date.today().isoformat()
+
+        with locked(STATE_DIR / "tracker.lock"):
+            number, account = self.sheet.find(LOGINS, "Site", site)
+
+            if number:
+                self.sheet.update(LOGINS, number, {**account, "Last used": today})
+            else:
+                self.sheet.append(LOGINS, {"Site": site, "Email": email, "First used": today, "Last used": today})

@@ -14,6 +14,7 @@ def block(result: dict) -> str:
      "salary": "$40/hour"},
     {"status": "dry_run", "reason": None, "explanation": "Filled."},
     {"status": "failed", "reason": "missing_fact", "explanation": "No ZIP code."},
+    {"status": "failed", "reason": "stuck", "explanation": "x", "account": "acme.wd5.myworkdayjobs.com"},
 ])
 def test_parses_valid_results(result):
     assert parse_result(block(result)) == Result(**result)
