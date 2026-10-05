@@ -15,7 +15,7 @@ can attach to the Chrome the launcher starts.
 Copy `profile.example.json` to `profile.json` and fill it in; it is gitignored.
 Then apply:
 
-    uv run jobs apply <url> [<url> ...] --dry-run [--workers 3] [--model openai-codex/gpt-6-luna:medium] [--timeout 60]
+    uv run jobs apply <url> [<url> ...] --dry-run [--workers 3] [--model openai-codex/gpt-6-astra:medium] [--timeout 60]
 
 Jobs run in parallel on N workers, shared by every `jobs apply` process; extra
 jobs wait for a free one. Worker `n` lives in `~/.jobs/workers/<n>/`: a copy of
