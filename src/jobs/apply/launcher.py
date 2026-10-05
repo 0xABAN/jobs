@@ -29,8 +29,9 @@ RUNS_DIR = STATE_DIR / "runs"
 LOGS_KEPT_HOURS = 3
 
 
-def apply(url: str, *, dry_run: bool, timeout_minutes: float, workers: int, model: str = pi.MODEL) -> Result:
-    """Apply to the job at ``url`` on one of ``workers`` workers, waiting for a free one, and return how it ended."""
+def apply(url: str, *, dry_run: bool, timeout_minutes: float, workers: int, first_worker: int = 0,
+          model: str = pi.MODEL) -> Result:
+    """Apply to the job at ``url`` on one of ``workers`` workers from ``first_worker`` on, waiting for a free one, and return how it ended."""
     if banned(url):
         return Result("skipped", "banned_site", "The harness never applies on this site.")
 
@@ -40,7 +41,7 @@ def apply(url: str, *, dry_run: bool, timeout_minutes: float, workers: int, mode
     tracker = Tracker(profile["tracker"]["sheet_id"])
     stopwatch = Stopwatch()
 
-    with worker(url, workers) as directory:
+    with worker(url, workers, first_worker) as directory:
         stopwatch.lap("worker")
         if directory is None:
             return Result("skipped", "in_progress", "Another worker is applying to this job.")

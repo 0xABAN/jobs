@@ -23,6 +23,8 @@ def main() -> None:
     apply_command.add_argument("urls", nargs="+", metavar="url", help="job posting URLs")
     apply_command.add_argument("--dry-run", action="store_true", help="fill everything but do not submit")
     apply_command.add_argument("--workers", type=int, default=3, help="parallel workers, shared by every run (default 3)")
+    apply_command.add_argument("--first-worker", type=int, default=0,
+                               help="number of the first worker to use, so parallel experiments keep separate workers (default 0)")
     apply_command.add_argument("--timeout", type=float, default=60, help="minutes before an agent is stopped (default 60)")
     apply_command.add_argument("--model", default=pi.MODEL, help="Pi model pattern and thinking level (default: %(default)s)")
 
@@ -43,7 +45,7 @@ def main() -> None:
         def run(url: str) -> str:
             try:
                 result = asdict(apply(url, dry_run=args.dry_run, timeout_minutes=args.timeout,
-                                      workers=args.workers, model=args.model))
+                                      workers=args.workers, first_worker=args.first_worker, model=args.model))
             except Exception as error:  # report it and let the other jobs finish
                 result = {"status": "error", "explanation": repr(error)}
 

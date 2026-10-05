@@ -21,6 +21,12 @@ def test_each_url_runs_on_one_worker_at_a_time(tmp_path, monkeypatch):
     with workers.worker("https://a", 1) as retry:
         assert retry is not None
 
+    # Experiments in parallel keep separate workers, but never apply to one URL twice at once.
+    with workers.worker("https://a", 2) as low, workers.worker("https://b", 2, first=2) as high:
+        assert (low.name, high.name) == ("0", "2")
+        with workers.worker("https://a", 2, first=2) as duplicate:
+            assert duplicate is None
+
 
 def test_prepared_chrome_copies_never_offer_to_save_passwords(tmp_path, monkeypatch):
     profile = tmp_path / "profile"

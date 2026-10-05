@@ -24,13 +24,13 @@ NOT_COPIED = shutil.ignore_patterns(
 
 
 @contextmanager
-def worker(url: str, count: int):
-    """Wait for a free worker among ``count``, claim it for ``url``, and yield its directory.
+def worker(url: str, count: int, first: int = 0):
+    """Wait for a free worker among the ``count`` from number ``first`` on, claim it for ``url``, and yield its directory.
 
-    Yields ``None`` instead when another worker is already applying to ``url``.
+    Yields ``None`` instead when any worker is already applying to ``url``.
     """
     while True:
-        for n in range(count):
+        for n in range(first, first + count):
             directory = WORKERS_DIR / str(n)
             with locked(directory / "job", wait=False) as job:
                 if job is None:

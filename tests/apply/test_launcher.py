@@ -25,7 +25,7 @@ def fake_run(monkeypatch, tmp_path, agent_result: str) -> list:
             recorded.append((site, email))
 
     @contextmanager
-    def worker(url, count):
+    def worker(url, count, first):
         yield tmp_path / "0"
 
     @contextmanager
