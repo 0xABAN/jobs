@@ -6,6 +6,7 @@ repo, so no AGENTS.md reaches the agent), a copy of Adam's ``jobs`` Chrome profi
 owning the worker, across processes; the operating system releases it if the process dies.
 """
 
+import json
 import shutil
 import time
 from contextlib import contextmanager
@@ -72,7 +73,12 @@ def _claim(job, url: str) -> bool:
 
 
 def _prepare(directory: Path) -> None:
-    """Give a worker the repo's MCP servers and, on first use, a copy of Adam's Chrome profile and its logins."""
+    """Give a worker the repo's MCP servers and, on first use, a copy of Adam's Chrome profile and its logins.
+
+    Every time, it also turns off Chrome's offer to save passwords in that copy: the "Save
+    password?" bubble after a sign-up opens as a second window of the agent's Chrome, and
+    CUA then refuses key presses as ambiguous between the two windows.
+    """
     mcp = directory / ".pi/mcp.json"
     mcp.parent.mkdir(parents=True, exist_ok=True)
     mcp.unlink(missing_ok=True)
@@ -85,3 +91,10 @@ def _prepare(directory: Path) -> None:
         shutil.rmtree(partial, ignore_errors=True)
         shutil.copytree(CHROME_PROFILE, partial, symlinks=True, ignore=NOT_COPIED)
         partial.rename(chrome)
+
+    # Chrome reads its preferences at launch, and this worker's Chrome is not running yet.
+    preferences_path = chrome / "Default/Preferences"
+    preferences = json.loads(preferences_path.read_text(encoding="utf-8"))
+    preferences["credentials_enable_service"] = False
+    preferences.setdefault("profile", {})["password_manager_enabled"] = False
+    preferences_path.write_text(json.dumps(preferences), encoding="utf-8")
