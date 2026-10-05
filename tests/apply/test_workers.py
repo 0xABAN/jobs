@@ -1,5 +1,7 @@
 import json
 
+import pytest
+
 from jobs.apply import workers
 
 
@@ -26,6 +28,25 @@ def test_each_url_runs_on_one_worker_at_a_time(tmp_path, monkeypatch):
         assert (low.name, high.name) == ("0", "2")
         with workers.worker("https://a", 2, first=2) as duplicate:
             assert duplicate is None
+
+
+def test_a_run_can_wait_for_another_run_of_its_url(tmp_path, monkeypatch):
+    monkeypatch.setattr(workers, "WORKERS_DIR", tmp_path)
+    monkeypatch.setattr(workers, "_prepare", lambda directory: None)
+
+    class Waited(Exception):
+        pass
+
+    def sleep(seconds):
+        raise Waited
+
+    monkeypatch.setattr(workers.time, "sleep", sleep)
+
+    with workers.worker("https://a", 1):
+        # Worker 1 is free, but worker 0 has the URL, so the claim waits instead of yielding None.
+        with pytest.raises(Waited):
+            with workers.worker("https://a", 1, first=1, wait_for_url=True):
+                pass
 
 
 def test_prepared_chrome_copies_never_offer_to_save_passwords(tmp_path, monkeypatch):

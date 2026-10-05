@@ -41,7 +41,7 @@ def apply(url: str, *, dry_run: bool, timeout_minutes: float, workers: int, firs
     tracker = Tracker(profile["tracker"]["sheet_id"])
     stopwatch = Stopwatch()
 
-    with worker(url, workers, first_worker) as directory:
+    with worker(url, workers, first_worker, wait_for_url=dry_run) as directory:
         stopwatch.lap("worker")
         if directory is None:
             return Result("skipped", "in_progress", "Another worker is applying to this job.")
