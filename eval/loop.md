@@ -30,7 +30,7 @@ Six workers take most of the Mac's memory. If `memory_pressure` reports less tha
 ## One pass (about 25 minutes)
 
 1. Take the top Workday, Greenhouse, and Ashby jobs from the queue (`sourcing.md`). If a section is empty, take the next job from another and note it in the record.
-2. From the lane's checkout, launch the live applications, Workday first because it takes about 25 minutes, and the fixed dry runs. Both commands share the lane's 3 workers:
+2. From the lane's checkout, launch the live applications, Workday first because it takes about 25 minutes, and 30 seconds later the fixed dry runs, so the live runs claim the lane's 3 workers first:
 
        nohup uv run jobs apply --first-worker <0 or 3> <workday> <greenhouse> <ashby> >> ~/.jobs/apply.log 2>&1 &
        nohup uv run jobs apply --dry-run --first-worker <0 or 3> <references> <controls> >> ~/.jobs/eval.log 2>&1 &
