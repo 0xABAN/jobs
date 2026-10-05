@@ -19,7 +19,7 @@ End your final message with the result as one JSON object in a `json` code block
 ```
 
 - `status`: `applied` (submitted, and the employer confirmed it), `dry_run` (everything filled in a dry run, Submit not clicked), or `failed`.
-- `reason`: `null` unless `status` is `failed`. Then it is one of `expired`, `captcha`, `login_issue`, `already_applied`, `excluded_company`, `not_eligible`, `missing_fact`, `sso_required`, `sensitive_request`, `unsafe_permissions`, `not_a_job_application`, `email_only`, `unconfirmed`, `stuck`, `page_error`, or `browser_unavailable`.
+- `reason`: `null` unless `status` is `failed`. Then it is one of `expired`, `captcha`, `login_issue`, `already_applied`, `excluded_company`, `banned_site`, `not_eligible`, `missing_fact`, `sso_required`, `sensitive_request`, `unsafe_permissions`, `not_a_job_application`, `email_only`, `unconfirmed`, `stuck`, `page_error`, or `browser_unavailable`.
 - `explanation`: one sentence. For `missing_fact`, name the question that the profile must answer.
 - `company`, `role`: as the posting names them; `null` if you never read the posting.
 - `salary`: the posted pay range as written, or `null` when the posting has none.
@@ -31,6 +31,7 @@ End your final message with the result as one JSON object in a `json` code block
 Stop immediately and fail with the matching reason when:
 
 - the company is in `excluded_companies` → `excluded_company`;
+- the application form is hosted on ${banned_sites}, including a form embedded from there → `banned_site`;
 - the site says Adam has already applied → `already_applied`;
 - the posting is closed or no longer accepts applications → `expired`;
 - the posting has a hard requirement Adam cannot meet (see Eligibility) → `not_eligible`;

@@ -16,7 +16,7 @@ from jobs.apply.prompt import render_prompt
 from jobs.apply.result import Result, parse_result
 from jobs.apply.workers import worker
 from jobs.chrome import chrome, devtools_port
-from jobs.config import STATE_DIR, load_profile
+from jobs.config import STATE_DIR, banned, load_profile
 from jobs.tracker import Tracker
 
 RUNS_DIR = STATE_DIR / "runs"
@@ -24,6 +24,9 @@ RUNS_DIR = STATE_DIR / "runs"
 
 def apply(url: str, *, dry_run: bool, timeout_minutes: float, workers: int, model: str | None = None) -> Result:
     """Apply to the job at ``url`` on one of ``workers`` workers, waiting for a free one, and return how it ended."""
+    if banned(url):
+        return Result("skipped", "banned_site", "The harness never applies on this site.")
+
     profile = load_profile()
     tracker = Tracker(profile["tracker"]["sheet_id"])
 

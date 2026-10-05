@@ -10,7 +10,7 @@ from datetime import date
 from pathlib import Path
 from string import Template
 
-from jobs.config import REPO_ROOT
+from jobs.config import BANNED_SITES, REPO_ROOT
 
 TEMPLATE_PATH = Path(__file__).with_name("prompt.md")
 
@@ -31,6 +31,7 @@ def render_prompt(job_url: str, *, dry_run: bool, profile: dict, today: date, se
         session=session,
         chrome_pid=chrome_pid,
         devtools_port=devtools_port,
+        banned_sites=", ".join(BANNED_SITES),
         # The launcher, not the agent, keeps the tracker.
         profile=json.dumps({k: v for k, v in profile.items() if k != "tracker"}, indent=2, ensure_ascii=False),
     )

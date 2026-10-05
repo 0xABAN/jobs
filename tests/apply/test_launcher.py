@@ -38,3 +38,11 @@ def test_apply_records_and_returns_the_agents_result(monkeypatch, tmp_path):
 
     assert result == Result("applied", None, "Submitted.")
     assert recorded == [result]
+
+
+def test_skips_banned_sites_without_claiming_a_worker(monkeypatch):
+    monkeypatch.setattr(launcher, "worker", None)  # calling it would fail
+
+    result = launcher.apply("https://jobs.lever.co/acme/123", dry_run=False, timeout_minutes=1, workers=1)
+
+    assert (result.status, result.reason) == ("skipped", "banned_site")

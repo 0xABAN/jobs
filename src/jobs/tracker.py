@@ -14,7 +14,7 @@ APPLIED, FAILED = "Apps", "Failed"
 
 # Failures that settle a job: retrying cannot change them, or risks submitting twice.
 FINAL_REASONS = {
-    "already_applied", "excluded_company", "expired", "not_eligible", "sso_required", "sensitive_request",
+    "already_applied", "excluded_company", "banned_site", "expired", "not_eligible", "sso_required", "sensitive_request",
     "unsafe_permissions", "not_a_job_application", "email_only", "unconfirmed",
 }
 

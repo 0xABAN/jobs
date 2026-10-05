@@ -24,8 +24,8 @@ new logins), the directory its Pi agent runs in, outside the repo so this repo's
 `AGENTS.md` never reaches it, and a lock file naming the job it is on
 (`uv run jobs status` lists them).
 
-For each job, the launcher skips URLs the tracker already settles or another
-worker is on, opens the job in a background Chrome with throttling off, runs a
+For each job, the launcher skips URLs on a banned site (`BANNED_SITES` in
+`src/jobs/config.py`), the tracker already settles, or another worker is on, opens the job in a background Chrome with throttling off, runs a
 headless Pi agent on `src/jobs/apply/prompt.md` filled in with the job and
 `profile.json`, and prints the agent's JSON result. Live runs are recorded in the
 tracker Sheet: `Apps` on success, `Failed` (one row per URL) otherwise. Each run
@@ -37,8 +37,8 @@ leaves its prompt, transcript, and result in `~/.jobs/runs/<run id>/`. Drop
 When a reCAPTCHA (v2, invisible v2, Enterprise) or Cloudflare Turnstile blocks an
 apply agent, it runs `uv run jobs captcha <devtools port>`, which finds the CAPTCHA
 through Chrome's DevTools protocol, has CapSolver solve it, and injects the token.
-It needs `CAPSOLVER_API_KEY` in `.env`. hCaptcha (Lever) is unsupported by CapSolver,
-and score-based reCAPTCHA v3 has nothing to solve.
+It needs `CAPSOLVER_API_KEY` in `.env`. CapSolver cannot solve hCaptcha, which is
+why Lever is banned, and score-based reCAPTCHA v3 has nothing to solve.
 
 Run the tests with `uv run pytest`.
 

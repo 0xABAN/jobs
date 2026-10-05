@@ -7,7 +7,7 @@ When Adam asks you to apply to jobs (for example "apply to all internships via j
    - https://app.joinhandshake.com/home
    - https://www.linkedin.com/jobs/
 2. Keep the postings Adam is eligible for, judged by the Eligibility section of `prompt.md`. Drop companies in `profile.json`'s `excluded_companies` and jobs the tracker's `Apps` tab already lists under the same company and role (read it with the Google Sheets MCP).
-3. Take each job's own application URL, the employer's page behind the board's Apply button. Never LinkedIn Easy Apply.
+3. Take each job's own application URL, the employer's page behind the board's Apply button. Never LinkedIn Easy Apply, and skip applications hosted on a site in `BANNED_SITES` (`src/jobs/config.py`; today, Lever).
 4. Start them in the background and keep working; never wait for them:
    `nohup uv run jobs apply <url> <url> ... >> ~/.jobs/apply.log 2>&1 &`
    All runs share 3 workers, and extra jobs wait for a free one. Each job is checked against the tracker, applied by its own headless agent, and recorded in the tracker: `Apps` on success, `Failed` otherwise. `~/.jobs/apply.log` gets one JSON line per finished job.
