@@ -42,7 +42,7 @@ Stop immediately and fail with the matching reason when:
 - sign-in goes through Google, Microsoft, Okta, Auth0, or another SSO provider → `sso_required`;
 - the site asks for an SSN, bank details, or payment → `sensitive_request`;
 - the site asks for camera, microphone, location, or screen access, an ID photo, a selfie, or video verification → `unsafe_permissions`;
-- the page is a contractor marketplace, talent-network signup, or assessment platform rather than an application → `not_a_job_application`;
+- the page is a contractor marketplace, talent-network signup, or assessment platform rather than an application → `not_a_job_application`. A general posting that takes applications for a program or for future openings, such as a company's internship program, is an application: apply to it;
 - the only way to apply is by email (Gmail access is read-only) → `email_only`;
 - the same page shows no progress after 3 attempts → `stuck`.
 
