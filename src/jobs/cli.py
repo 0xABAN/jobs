@@ -6,7 +6,8 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict
 
-from jobs.apply.launcher import apply
+from jobs.apply.launcher import RUNS_DIR, apply
+from jobs.apply.timeline import timeline
 from jobs.apply.workers import running
 from jobs.captcha import solve
 from jobs.chrome import launch
@@ -31,6 +32,9 @@ def main() -> None:
 
     captcha = commands.add_parser("captcha", help="solve the CAPTCHA blocking a page in a harness Chrome; print JSON")
     captcha.add_argument("port", type=int, help="that Chrome's DevTools port")
+
+    timeline_command = commands.add_parser("timeline", help="show where an apply run spent its time, step by step")
+    timeline_command.add_argument("run", nargs="?", help="run id, a directory name in ~/.jobs/runs (default: the latest)")
 
     args = parser.parse_args()
 
@@ -59,3 +63,6 @@ def main() -> None:
         outcome = solve(args.port)
         print(json.dumps(outcome))
         sys.exit("error" in outcome)
+
+    if args.command == "timeline":
+        print(timeline(RUNS_DIR / args.run if args.run else max(RUNS_DIR.iterdir())))

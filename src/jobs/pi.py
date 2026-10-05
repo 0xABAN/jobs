@@ -4,7 +4,10 @@ import json
 import os
 import signal
 import subprocess
+import threading
+import time
 from pathlib import Path
+from typing import IO
 
 # Extension tools a headless agent must not use: they spawn agents or message other Pi sessions.
 EXCLUDED_TOOLS = "Agent,SubagentWorkflow,get_subagent_result,steer_subagent,intercom,create_goal,todo"
@@ -14,8 +17,10 @@ def run(prompt: Path, *, cwd: Path, log_dir: Path, timeout_minutes: float, model
     """Run Pi on ``prompt`` from ``cwd``, log its transcript in ``log_dir``, and return its final message.
 
     Pi loads ``cwd``'s ``.pi/mcp.json`` but no context files, so the prompt is its only
-    instructions. Raises ``subprocess.TimeoutExpired`` after killing Pi and its MCP
-    servers when it runs past ``timeout_minutes``.
+    instructions. Each transcript event gets a ``t`` field, the seconds since Pi launched
+    when the event arrived, because Pi's own events mostly lack timestamps. Raises
+    ``subprocess.TimeoutExpired`` after killing Pi and its MCP servers when it runs past
+    ``timeout_minutes``.
     """
     command = [
         "pi", "--mode", "json", "--no-session",
@@ -27,17 +32,30 @@ def run(prompt: Path, *, cwd: Path, log_dir: Path, timeout_minutes: float, model
     ]
     transcript_path = log_dir / "transcript.jsonl"
 
-    with transcript_path.open("w", encoding="utf-8") as transcript, (log_dir / "stderr.log").open("w") as stderr:
+    with (log_dir / "stderr.log").open("w") as stderr:
         # A session of its own, so a timeout can kill Pi together with its MCP servers.
-        agent = subprocess.Popen(command, cwd=cwd, stdout=transcript, stderr=stderr, start_new_session=True)
+        agent = subprocess.Popen(command, cwd=cwd, stdout=subprocess.PIPE, stderr=stderr, start_new_session=True)
+        copier = threading.Thread(target=_timestamp, args=(agent.stdout, transcript_path, time.monotonic()))
+        copier.start()
+
         try:
             agent.wait(timeout=timeout_minutes * 60)
         except subprocess.TimeoutExpired:
             os.killpg(agent.pid, signal.SIGKILL)
             agent.wait()
             raise
+        finally:
+            copier.join()
 
     return final_message(transcript_path)
+
+
+def _timestamp(events: IO[bytes], transcript: Path, launched: float) -> None:
+    """Copy Pi's JSON events to ``transcript`` as they arrive, each with ``t`` inserted as its first field."""
+    with transcript.open("wb", buffering=0) as out:  # unbuffered, so a running agent's transcript is current
+        for line in events:
+            if line.strip():
+                out.write(b'{"t":%.3f,' % (time.monotonic() - launched) + line.removeprefix(b"{"))
 
 
 def final_message(transcript: Path) -> str:

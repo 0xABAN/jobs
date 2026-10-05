@@ -1,9 +1,10 @@
 """Apply to one job: claim a worker, open the job in its Chrome, run a headless Pi agent, and record the result.
 
 Each run leaves ``~/.jobs/runs/<run id>/`` with the prompt, the agent's JSONL
-transcript, and ``result.json``. The prompt embeds Adam's profile, so the
-directory is private to his account. Live runs are also recorded in the tracker,
-and so is any account an agent used, in dry runs too.
+transcript, and ``result.json``, which also times the run's phases for ``jobs
+timeline``. The prompt embeds Adam's profile, so the directory is private to his
+account. Live runs are also recorded in the tracker, and so is any account an
+agent used, in dry runs too.
 """
 
 import json
@@ -30,18 +31,21 @@ def apply(url: str, *, dry_run: bool, timeout_minutes: float, workers: int, mode
 
     profile = load_profile()
     tracker = Tracker(profile["tracker"]["sheet_id"])
+    stopwatch = Stopwatch()
 
     with worker(url, workers) as directory:
+        stopwatch.lap("worker")
         if directory is None:
             return Result("skipped", "in_progress", "Another worker is applying to this job.")
         if reason := tracker.skip_reason(url):
             return Result("skipped", reason, "The tracker already settles this job.")
+        stopwatch.lap("check")
 
         run_id = f"{datetime.now():%Y%m%d-%H%M%S}-{directory.name}"
         run_dir = RUNS_DIR / run_id
-        started = time.monotonic()
 
         with chrome(directory / "chrome", url) as chrome_pid:
+            stopwatch.lap("chrome")
             run_dir.mkdir(parents=True, mode=0o700)
             prompt = run_dir / "prompt.md"
             prompt.write_text(render_prompt(
@@ -53,16 +57,33 @@ def apply(url: str, *, dry_run: bool, timeout_minutes: float, workers: int, mode
                                              timeout_minutes=timeout_minutes, model=model))
             except subprocess.TimeoutExpired:
                 result = Result("failed", "timeout", f"The agent did not finish within {timeout_minutes:g} minutes.")
+            stopwatch.lap("agent")
+        stopwatch.lap("quit")
 
-        record = {"url": url, "dry_run": dry_run, "seconds": round(time.monotonic() - started), **asdict(result)}
-        (run_dir / "result.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
+        try:
+            # Record while still holding the worker, so no other worker starts this URL in between.
+            if not dry_run:
+                tracker.record(url, result, run_id)
 
-        # Record while still holding the worker, so no other worker starts this URL in between.
-        if not dry_run:
-            tracker.record(url, result, run_id)
-
-        # Dry runs sign in and create accounts for real, so their accounts are recorded too.
-        if result.account:
-            tracker.record_account(result.account, profile["personal"]["email"])
+            # Dry runs sign in and create accounts for real, so their accounts are recorded too.
+            if result.account:
+                tracker.record_account(result.account, profile["personal"]["email"])
+        finally:
+            stopwatch.lap("record")
+            record = {"url": url, "dry_run": dry_run, **asdict(result), "phases": stopwatch.laps}
+            (run_dir / "result.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
 
     return result
+
+
+class Stopwatch:
+    """Times the phases of a run in order: ``lap(name)`` ends the phase called ``name``."""
+
+    def __init__(self):
+        self.laps: dict[str, float] = {}  # seconds per phase
+        self._last = time.monotonic()
+
+    def lap(self, name: str) -> None:
+        now = time.monotonic()
+        self.laps[name] = round(now - self._last, 1)
+        self._last = now

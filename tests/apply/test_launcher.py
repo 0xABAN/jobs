@@ -1,3 +1,4 @@
+import json
 from contextlib import contextmanager
 
 from jobs.apply import launcher
@@ -47,6 +48,10 @@ def test_apply_records_and_returns_the_agents_result(monkeypatch, tmp_path):
 
     assert result == Result("applied", None, "Submitted.")
     assert recorded == [result]
+
+    (run_dir,) = (tmp_path / "runs").iterdir()
+    phases = json.loads((run_dir / "result.json").read_text())["phases"]
+    assert list(phases) == ["worker", "check", "chrome", "agent", "quit", "record"]
 
 
 def test_dry_runs_record_only_the_account_they_used(monkeypatch, tmp_path):

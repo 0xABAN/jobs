@@ -36,6 +36,12 @@ in `~/.jobs/runs/<run id>/`. Drop `--dry-run` to submit.
 
 `uv run jobs browse <url>` opens the `jobs` profile itself, for browsing job boards.
 
+`uv run jobs timeline [run id]` shows where a run, finished or running, spent its
+time: the launcher's phases, then each agent turn split into model time (waiting for
+the first token, thinking, writing) and tool time, with the CUA calls inside each
+codemode script, and the slowest calls overall. It reads `result.json` and the
+transcript, whose events `pi.run` stamps with `t`, the seconds since Pi launched.
+
 When a reCAPTCHA (v2, invisible v2, Enterprise) or Cloudflare Turnstile blocks an
 apply agent, it runs `uv run jobs captcha <devtools port>`, which finds the CAPTCHA
 through Chrome's DevTools protocol, has CapSolver solve it, and injects the token.
