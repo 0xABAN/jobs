@@ -6,6 +6,7 @@
     "preferred_name": "YOUR_PREFERRED_NAME",
     "pronouns": "",
     "email": "your.email@example.com",
+    "school_email": "",
     "password": "",
     "phone": "555-123-4567",
     "address": "123 Main St",
@@ -22,6 +23,7 @@
   "work_authorization": {
     "citizenship": "U.S. citizen",
     "dual_citizenship": "None",
+    "other_countries": "None: no citizenship, passport, permanent residency, or refugee/asylum status in any other country",
     "legally_authorized_to_work": "Yes",
     "require_sponsorship": "No"
   },
