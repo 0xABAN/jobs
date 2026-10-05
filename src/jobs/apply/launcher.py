@@ -3,10 +3,11 @@
 Each run leaves ``~/.jobs/runs/<run id>/`` with the prompt, the agent's JSONL
 transcript, and ``result.json``, which also times the run's phases for ``jobs
 timeline``. The prompt embeds Adam's profile, so the directory is private to his
-account. Live runs are also recorded in the tracker, and so is any account an
-agent used, in dry runs too.
+account. After ``LOGS_KEPT_HOURS`` only ``result.json`` remains. Live runs are also
+recorded in the tracker, and so is any account an agent used, in dry runs too.
 """
 
+import contextlib
 import json
 import subprocess
 import time
@@ -23,11 +24,17 @@ from jobs.tracker import Tracker
 
 RUNS_DIR = STATE_DIR / "runs"
 
+# Transcripts reach about 100 MB per run, mostly raw CUA results, and prompts hold Adam's
+# password, so each run's logs except result.json are deleted after this long.
+LOGS_KEPT_HOURS = 3
+
 
 def apply(url: str, *, dry_run: bool, timeout_minutes: float, workers: int, model: str | None = None) -> Result:
     """Apply to the job at ``url`` on one of ``workers`` workers, waiting for a free one, and return how it ended."""
     if banned(url):
         return Result("skipped", "banned_site", "The harness never applies on this site.")
+
+    prune_logs()
 
     profile = load_profile()
     tracker = Tracker(profile["tracker"]["sheet_id"])
@@ -74,6 +81,20 @@ def apply(url: str, *, dry_run: bool, timeout_minutes: float, workers: int, mode
             (run_dir / "result.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
 
     return result
+
+
+def prune_logs() -> None:
+    """Delete every file but ``result.json`` from run directories, once untouched for ``LOGS_KEPT_HOURS``.
+
+    A running agent writes its transcript continuously, so a live run is never old enough.
+    """
+    cutoff = time.time() - LOGS_KEPT_HOURS * 3600
+
+    for log in RUNS_DIR.glob("*/*"):
+        # Parallel runs prune too, so another one may delete a file first.
+        with contextlib.suppress(FileNotFoundError):
+            if log.name != "result.json" and log.stat().st_mtime < cutoff:
+                log.unlink()
 
 
 class Stopwatch:

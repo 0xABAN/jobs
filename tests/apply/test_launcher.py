@@ -1,4 +1,6 @@
 import json
+import os
+import time
 from contextlib import contextmanager
 
 from jobs.apply import launcher
@@ -61,6 +63,23 @@ def test_dry_runs_record_only_the_account_they_used(monkeypatch, tmp_path):
     launcher.apply("https://example.com/job", dry_run=True, timeout_minutes=1, workers=1)
 
     assert recorded == [("acme.wd5.myworkdayjobs.com", "adam@example.com")]
+
+
+def test_prunes_all_but_results_from_runs_older_than_three_hours(monkeypatch, tmp_path):
+    monkeypatch.setattr(launcher, "RUNS_DIR", tmp_path)
+    for run in ("old", "recent"):
+        for name in ("prompt.md", "transcript.jsonl", "stderr.log", "result.json"):
+            (tmp_path / run).mkdir(exist_ok=True)
+            (tmp_path / run / name).write_text("x")
+
+    four_hours_ago = time.time() - 4 * 3600
+    for log in (tmp_path / "old").iterdir():
+        os.utime(log, (four_hours_ago, four_hours_ago))
+
+    launcher.prune_logs()
+
+    assert [log.name for log in (tmp_path / "old").iterdir()] == ["result.json"]
+    assert len(list((tmp_path / "recent").iterdir())) == 4
 
 
 def test_skips_banned_sites_without_claiming_a_worker(monkeypatch):
