@@ -74,4 +74,4 @@ Add a `grade` to the run's `result.json`:
 
     "grade": {"kind": "workday", "correct": true, "critical": [], "minor": ["pronouns filled"], "note": "anything surprising, in one line"}
 
-`kind` is `workday`, `greenhouse`, or `ashby` for a live run, named for the form's ATS even when it sits inside an employer's own page; for a fixed run, it is its `benchmark.md` id. Whatever is worth trying next goes into `ideas.md` with the run id.
+`kind` is `workday`, `greenhouse`, or `ashby` for a live run, named for the form's ATS even when it sits inside an employer's own page; for a fixed run, it is its `benchmark.md` id. When a failure outside the harness hampered the run, such as a locked screen or a site outage, add `"infra": "<what happened>"`: the run then counts toward neither accuracy nor time, and a live job it failed goes back in the queue. Whatever is worth trying next goes into `ideas.md` with the run id.

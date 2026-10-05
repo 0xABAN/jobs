@@ -74,6 +74,8 @@ A run's time is the sum of the `phases` in its `result.json` minus `worker`, the
         worker = int(path.parent.name.rsplit("-", 1)[1])
         if first <= path.parent.name <= last and "ab"[worker // 3] == lane:
             run = json.loads(path.read_text())
+            if "infra" in run["grade"]:
+                continue
             kind = run["grade"]["kind"]
             minutes[kind].append((sum(run["phases"].values()) - run["phases"]["worker"]) / 60)
             correct[kind].append(run["grade"]["correct"])
