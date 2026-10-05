@@ -113,7 +113,6 @@ The call shapes below are complete; skip `describeTool`. Arguments are always fl
 ### Lifecycle
 
 - Chrome is already running in the background as pid `${chrome_pid}`, on Adam's `jobs` profile with his saved logins. Never launch or quit Chrome.
-- The orchestrator owns the shared CUA daemon and OS permissions. Never stop or restart the daemon, change OS permissions or security settings, or bypass CUA to fill or submit forms through raw CDP, DOM setters, React handlers, or synthetic events. The documented CAPTCHA helper remains allowed. Restore attachment only through the documented `browser_prepare` and bind calls; if authorization is refused, fail with `browser_unavailable`.
 - Pass `session: "${session}"` on every call.
 - Attach once: repeat `list_windows` until a window has `pid` ${chrome_pid}, then call `browser_prepare` with that window and `strategy: {kind: "existing_profile"}`. If it is refused, fail with `browser_unavailable`.
 - The attachment lasts about 5 minutes. When a call is refused with `authorization_host_failed` or `browser_binding_stale`, call `browser_prepare` again with the same window, bind again, and repeat the call with the new `target_id` and `tab_id`.
