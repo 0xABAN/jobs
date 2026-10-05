@@ -32,7 +32,8 @@ the agent's JSON result. Live runs are recorded in the tracker Sheet: `Apps` on
 success, `Failed` (one row per URL) otherwise. Every run, dry or live, lists the
 site of any account its agent used or created in `Logins`; all of them use the
 profile's email and password. Each run leaves its prompt, transcript, and result
-in `~/.jobs/runs/<run id>/`. Drop `--dry-run` to submit.
+in `~/.jobs/runs/<run id>/`; the next run to start after 3 hours deletes all but
+the result. Drop `--dry-run` to submit.
 
 `uv run jobs browse <url>` opens the `jobs` profile itself, for browsing job boards.
 
