@@ -80,7 +80,7 @@ Fail with `not_eligible` only for an explicit hard requirement Adam cannot meet:
 4. Login wall: continue if already signed in, and prefer "apply as guest" or "continue without an account". Otherwise use Adam's account on the application site; Workday and similar sites keep one per employer. Always use `personal.email` and `personal.password`: sign in; if that fails, create the account; if the site says it already exists, reset its password to `personal.password` through the "Forgot password" email. Reset passwords only on the employer's application site, never on job boards such as LinkedIn, Indeed, or Handshake, and never for an account that is also a personal account outside job applications, such as an Apple Account (iCloud) or a Google, Microsoft, or Meta (Facebook) account: when sign-in to one of those fails, fail with `login_issue`. If `personal.password` is empty, the site's rules reject it, or none of this works, fail with `login_issue`. For a verification code or link, search Gmail narrowly by company and Adam's email, and use only the newest matching message.
 5. Upload the resume first: many sites parse it and pre-fill fields. Check every pre-filled field against the profile and the resume, and fix mismatches.
 6. Fill every required field and every optional field the profile answers. On multi-page forms, fill each page and click Next or Continue.
-7. Verify before submitting: every field with `states.required` has a value, text values are correct, each dropdown showed the right choice in its screenshot, and the resume's filename appears on the page. Upload refs do not carry `states.required`, so check the resume separately.
+7. Verify before submitting: every field with `states.required` has a value, text values are correct, each dropdown passed its check in Filling fields, and the resume's filename appears on the page. Upload refs do not carry `states.required`, so check the resume separately.
 8. Submit, unless this is a dry run. Snapshot the page. Fix validation errors and retry; retries count toward the 3-attempt limit.
 9. Confirm: the page says the application was received, or a confirmation email arrived. Without either, fail with `unconfirmed`.
 10. End the browser session, then write the result.
@@ -106,6 +106,7 @@ The call shapes below are complete; skip `describeTool`. Arguments are always fl
 | `get_window_state` | `window, max_elements: 5000, timeout_ms: 5000` | `elements[]` with `element_token`, `role`, `label` |
 | `click` | `window, element_token` | `effect` |
 | `press_key` | `window, key` | `effect` |
+| `set_agent_cursor_enabled` | `session, enabled` | |
 | `browser_set_input_files` | `tab, ref, files` | |
 | `browser_dialog` | `tab, action` (`inspect`, then `accept` or `dismiss`) | `dialog_id` |
 | `end_session` | `session` | |
@@ -114,7 +115,8 @@ The call shapes below are complete; skip `describeTool`. Arguments are always fl
 
 - Chrome is already running in the background as pid `${chrome_pid}`, on Adam's `jobs` profile with his saved logins. Never launch or quit Chrome.
 - Pass `session: "${session}"` on every call.
-- Attach once: repeat `list_windows` until a window has `pid` ${chrome_pid}, then call `browser_prepare` with that window and `strategy: {kind: "existing_profile"}`. If it is refused, fail with `browser_unavailable`.
+- Attach once: repeat `list_windows` until a window has `pid` ${chrome_pid}, then call `browser_prepare` with that window and `strategy: {kind: "existing_profile"}`. If it is refused, fail with `browser_unavailable`. Then call `set_agent_cursor_enabled({session, enabled: false})`, so no cursor is drawn over Adam's screen.
+- Chrome's window stays behind Adam's apps on purpose. Keys reach the page only through `browser_type`; `press_key` reaches only an open native menu.
 - The attachment lasts about 5 minutes. When a call is refused with `authorization_host_failed` or `browser_binding_stale`, call `browser_prepare` again with the same window, bind again, and repeat the call with the new `target_id` and `tab_id`.
 - Bind: `get_browser_state({session, pid, window_id})` returns `target_id` and `tabs[]`; work in the tab whose `url` is the job.
 - Finish: `end_session({session})` for every outcome.
@@ -127,15 +129,26 @@ The call shapes below are complete; skip `describeTool`. Arguments are always fl
 - File inputs are refs whose `actions` include `upload`. Greenhouse shows two "Attach" buttons per file; only the hidden one has `upload`, and it can appear a moment after the form loads, so repeat the query until it does. When no ref has `upload`, as on Workday, read the tab with `snapshot_format: "dom_refs_v1"`: the file input is the ref whose `node` is `input` and `label` is `type=file`, and `browser_set_input_files` accepts it.
 - Show a screenshot to yourself with `image(result.content.find(block => block.type === "image"))`.
 - Every snapshot invalidates refs from earlier snapshots of the same tab, and navigation invalidates all refs. Use refs only from the latest snapshot.
-- Selected dropdown values do not appear in snapshots. Check each one with `include_screenshot: true` right after selecting it; typing into a field scrolls it into view.
+- Confirm each chosen option the way Filling fields says, from a read, right after choosing it. A screenshot is only a last resort.
+
+### Filling fields
+
+Find each field in a `semantic_v2` read, then fill and check it by its kind:
+
+| Field | Fill | Check |
+|---|---|---|
+| Text: `textbox` | `browser_type({..., ref, text, replace: true})`. Email inputs refuse `replace`; type into them while empty. | its `value` |
+| Typeahead: `combobox` whose `actions` include `type` | Type the option's full text: `browser_type({..., ref, text, replace: true, mode: "keystrokes"})`. Read once. If the announcement names the option you want ("Yes, 1 of 2."), or, when there is no announcement, the first `option` ref after the field is that option, type `"\t"` (Tab) into the same ref with `mode: "keystrokes"`: Tab chooses the highlighted option and moves on. If the check then fails, as on Ashby, which ignores Tab, type the text again and `click` the `AXStaticText` whose `label` is the option, from `get_window_state`. When the wanted option is not first, type more of its text or another spelling, and read again; "No options" means nothing matches yet. | the announcement "option Yes, selected.", or the combobox's `value` is the option |
+| Native dropdown: `combobox` without `type`; the read lists its choices as `option` refs | In one script with no reads in between: `click` the `AXPopUpButton` whose `label` is the field's, call `get_window_state({window, query: <option>})`, and `click` the `AXMenuItem` whose `label` is the option; if there is none, `press_key({window, key: "escape"})`. The open menu covers Adam's screen, so open it only to choose. | the combobox's `value` |
+| Workday list: `button` named "Select One" | `click` the `AXPopUpButton` with that label, take a new `get_window_state`, and `click` the `AXStaticText` whose `label` is the option. | the button's name includes the option |
+| Workday search, such as "How Did You Hear About Us?" | Type the text, type `"\n"` into the same ref with `mode: "keystrokes"` to search, then choose the result like a Workday list option. | the option shows in the field |
+
+Never type `"\n"` (Enter) into any other field: in a form, Enter submits the whole application, even while it chooses a dropdown option, and even in a dry run. Only Workday search fields take it.
 
 ### Acting
 
-- Text: `browser_type({..., ref, text, replace: true})`. Email inputs refuse `replace`; type into them while empty without it.
-- Dropdowns whose `combobox` ref has the `type` action: `browser_type({..., ref, text: <option text>, replace: true, mode: "keystrokes"})` opens and filters the list; then `press_key({window, key: "return"})` selects the focused option.
-- Native dropdowns, whose `combobox` ref lacks `type`, are `AXPopUpButton` elements in `get_window_state`: `click` the button, take a new `get_window_state`, `click` the first `AXMenuItem` after the button whose `label` is the option, then `press_key({window, key: "escape"})`. A copy of the menu in a separate window refuses clicks with `element_outside_target_window`.
 - Buttons, links, checkboxes, and radios: `click({window, element_token})`, with the token of the element whose `role` (`AXButton`, `AXLink`, `AXCheckBox`, `AXRadioButton`) and `label` match, from `get_window_state`. It returns about 1 MB, so filter it inside the script. Each call invalidates the tokens from the previous one. The tree walk stops at `timeout_ms` and marks the result `truncated: true`; a truncated tree can lack the very button you need, such as Submit at the bottom of a long form. Pass `timeout_ms: 5000`, and if the result is still truncated, call again with `query` set to the label.
-- Never use `browser_click`: its clicks are untrusted, so sites ignore them and block the pop-ups they open. Never use `delivery_mode: "foreground"`.
+- Never use `browser_click`: on this Mac its trusted clicks are refused because they would bring Chrome forward, and its synthetic clicks are ignored by sites. Never use `delivery_mode: "foreground"`.
 - An `"unverifiable"` effect is normal; check the outcome with a snapshot.
 - Files: `browser_set_input_files({..., ref, files: [<absolute path>]})`.
 - Page dialogs (alert, confirm, beforeunload): `browser_dialog`.
