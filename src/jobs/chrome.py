@@ -5,6 +5,7 @@ flags: CUA's own launch leaves Chrome throttling hidden windows. CUA then
 attaches to this process, which its ``--grant existing-profile`` allows.
 """
 
+import json
 import os
 import signal
 import subprocess
@@ -12,8 +13,7 @@ import time
 from contextlib import contextmanager
 from pathlib import Path
 
-from jobs.config import STATE_DIR
-from jobs.lock import locked
+from websockets.sync.client import connect
 
 FLAGS = [
     "--remote-debugging-port=0",  # any free port; CUA finds it from the pid
@@ -46,28 +46,26 @@ def launch(profile: Path, url: str) -> int:
     if owner := _owner(profile):
         raise RuntimeError(f"Chrome (pid {owner}) is already using {profile}; quit it first")
 
-    # One launch at a time: parallel launches would hand focus to each other instead of Adam's app.
-    with locked(STATE_DIR / "chrome-launch.lock"):
-        # Chrome writes this file once its debugger listens; a stale copy would fake readiness.
-        (profile / "DevToolsActivePort").unlink(missing_ok=True)
-        previous_app = _frontmost_app()
+    # Chrome writes this file once its debugger listens; a stale copy would fake readiness.
+    (profile / "DevToolsActivePort").unlink(missing_ok=True)
 
-        # `-g` launches in the background; `-n` starts an instance apart from personal Chrome.
-        subprocess.run(
-            ["open", "-g", "-n", "-a", "Google Chrome", "--args", f"--user-data-dir={profile}", *FLAGS, url],
-            check=True,
-        )
-        if not _wait(lambda: (profile / "DevToolsActivePort").exists() and _owner(profile), seconds=30):
-            raise RuntimeError(f"Chrome did not start on {profile}")
+    # Chrome takes focus from Adam's app when it opens its startup window, even when `open -g`
+    # launches it in the background. So it starts windowless, and the job opens in a background
+    # window, which leaves focus alone. `-n` starts an instance apart from personal Chrome.
+    subprocess.run(
+        ["open", "-g", "-n", "-a", "Google Chrome", "--args", f"--user-data-dir={profile}", "--no-startup-window",
+         *FLAGS],
+        check=True,
+    )
+    if not _wait(lambda: (profile / "DevToolsActivePort").exists() and _owner(profile), seconds=30):
+        raise RuntimeError(f"Chrome did not start on {profile}")
 
-        pid = _owner(profile)
-        try:
-            # Chrome still takes focus when its window opens; hand it back to whatever Adam was using.
-            if _wait(lambda: _frontmost_app() == pid, seconds=5):
-                _appkit(f"$.NSRunningApplication.runningApplicationWithProcessIdentifier({previous_app}).activateWithOptions(0)")
-        except BaseException:
-            close(pid)
-            raise
+    pid = _owner(profile)
+    try:
+        _open_background_window(profile, url)
+    except BaseException:
+        close(pid)
+        raise
 
     return pid
 
@@ -92,14 +90,21 @@ def _owner(profile: Path) -> int | None:
     return pid if _alive(pid) else None
 
 
-def _frontmost_app() -> int:
-    return int(_appkit("$.NSWorkspace.sharedWorkspace.frontmostApplication.processIdentifier"))
+def _open_background_window(profile: Path, url: str) -> None:
+    """Open ``url`` in a new window of the Chrome on ``profile`` without activating Chrome.
 
+    Uses the browser's DevTools endpoint, which Chrome names in ``DevToolsActivePort``'s second line.
+    """
+    port, path = (profile / "DevToolsActivePort").read_text().split()[:2]
+    request = {"id": 1, "method": "Target.createTarget", "params": {"url": url, "newWindow": True, "background": True}}
 
-def _appkit(expression: str) -> str:
-    """Evaluate an AppKit expression through JavaScript for Automation and return its output."""
-    command = ["osascript", "-l", "JavaScript", "-e", f"ObjC.import('AppKit'); {expression}"]
-    return subprocess.run(command, capture_output=True, text=True, check=True).stdout.strip()
+    with connect(f"ws://127.0.0.1:{port}{path}", max_size=None) as socket:
+        socket.send(json.dumps(request))
+        while (reply := json.loads(socket.recv(timeout=30))).get("id") != 1:
+            pass  # an event, not our reply
+
+    if "error" in reply:
+        raise RuntimeError(f"Chrome could not open {url}: {reply['error']['message']}")
 
 
 def _alive(pid: int) -> bool:
