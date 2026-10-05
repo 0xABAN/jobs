@@ -7,11 +7,12 @@ as JSON; the agent reads the resume it chooses itself.
 
 import json
 from datetime import date
+from pathlib import Path
 from string import Template
 
 from jobs.config import REPO_ROOT
 
-TEMPLATE_PATH = REPO_ROOT / "src/jobs/apply/prompt.md"
+TEMPLATE_PATH = Path(__file__).with_name("prompt.md")
 
 
 def render_prompt(job_url: str, *, dry_run: bool, profile: dict, today: date, session: str, chrome_pid: int) -> str:
