@@ -4,7 +4,7 @@ The agent's `status` is its own claim; the grade checks it. Grade every run with
 
 ## What to read
 
-Read the run's `result.json`, `profile.json`, and the agent's narration, last screenshots, and last page reads. This prints the narration, saves the last 4 screenshots, and saves the text of the agent's last 8 codemode results, which hold its page reads:
+Read the run's `result.json`, `profile.json`, and the agent's narration, typing, last screenshots, and last page reads. This prints the narration and everything the agent typed, saves the last 4 screenshots, and saves the text of the agent's last 8 codemode results, which hold its page reads:
 
     python3 - <run id> <<'EOF'
     import base64, json, sys
@@ -22,6 +22,8 @@ Read the run's `result.json`, `profile.json`, and the agent's narration, last sc
             text = " ".join(b["text"] for b in event["message"]["content"] if b["type"] == "text").strip()
             if text:
                 print(f"[{turn} @{event['t']:.0f}s] {text}")
+        elif event["type"] == "tool_execution_start" and event["toolName"].endswith("browser_type"):
+            print(f"    typed @{event['t']:.0f}s: {event['args'].get('text', '')}")
         elif event["type"] == "tool_execution_end":
             content = event["result"].get("content", [])
             screenshots += [b["data"] for b in content if b["type"] == "image"]
