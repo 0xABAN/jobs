@@ -17,6 +17,7 @@ Hypotheses not yet tried, best first. Each cites evidence from a run. Mark the o
 
 Things only Adam can fix, each with its run id. They stay here until he does.
 
+- **College transcript.** Run 20261005-003208-2 (Mastercard, Workday) stopped as `missing_fact` on a required transcript upload. A transcript PDF under `resumes/` and a profile entry pointing to it would let such forms through; internship forms ask for one often.
 - **Marital status.** Run 20261004-234017-4 (T-Mobile, Workday) stopped as `missing_fact` on a required "Has your spouse or domestic partner ever served in the U.S. Military?". Adding marital status, or a direct answer, to `profile.json` would let such questions through; T-Mobile's Assoc Engineer, AI waits for it.
 - **The Mac locked at about 22:35, and runs need it unlocked.** With the session locked, Chrome exposes no accessibility tree, so every click (which must go through accessibility to be trusted) is refused: run 20261004-223539-1 (NVIDIA) failed `browser_unavailable`, and the others fell back to keystrokes. `browser_click` is no way around it: on macOS cua-driver refuses its trusted route because it would bring Chrome to the front. Passes are paused until the screen is unlocked. To keep it from locking while the loop runs, turn off "Require password after screen saver begins or display is turned off" or keep the display awake (`caffeinate -d`).
 
