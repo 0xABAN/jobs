@@ -1,6 +1,6 @@
 # Eval loop
 
-You are improving Adam's apply harness while it applies him to jobs. Every pass submits real applications and repeats a few fixed dry runs. Each change is a hypothesis: keep it when the passes show runs got faster or more accurate, revert it otherwise. Git is the lab notebook.
+You are improving Adam's apply harness while it applies him to jobs. Every pass submits real applications and repeats a few fixed dry runs. Each change is a hypothesis: keep it when the passes show runs got faster or more accurate, revert it otherwise. Git is the lab notebook. You are the orchestrator of `AGENTS.md`; read it and `sourcing.md` first.
 
 This runs as a goal that only Adam ends, so there is no finish line: after every verdict, start the next pass. Never ask Adam anything and never sit idle. When `ideas.md` runs dry, measure a fresh baseline and mine its logs for more.
 
@@ -12,22 +12,22 @@ This runs as a goal that only Adam ends, so there is no finish line: after every
 - Rules stay general. A note may describe an ATS (Workday, Greenhouse, Ashby), never a single employer or posting.
 - While a pass runs, leave `src/` and `profile.json` alone: each run reads them when it starts, so an edit would split the pass between two versions. Files in `eval/` are safe to edit anytime.
 
-## One pass (about 30 minutes)
+## One pass (about 25 minutes)
 
-1. Source 6 fresh postings, 2 each on Workday, Greenhouse, and Ashby, as `benchmark.md` describes.
-2. Launch the live applications, Workday first because each takes about 25 minutes, and the fixed dry runs. Both commands share the 3 workers:
+1. Take the top Workday, Greenhouse, and Ashby jobs from the queue (`sourcing.md`). If a section is empty, take the next job from another and note it in the record.
+2. Launch the live applications, Workday first because it takes about 25 minutes, and the fixed dry runs. Both commands share the 3 workers:
 
-       nohup uv run jobs apply <workday> <workday> <greenhouse> <greenhouse> <ashby> <ashby> >> ~/.jobs/apply.log 2>&1 &
+       nohup uv run jobs apply <workday> <greenhouse> <ashby> >> ~/.jobs/apply.log 2>&1 &
        nohup uv run jobs apply --dry-run <references> <controls> >> ~/.jobs/eval.log 2>&1 &
 
-3. While it runs, grade each run as soon as it finishes (`rubric.md`; transcripts are deleted 3 hours after a run), source the next pass, and turn what the logs show into `ideas.md` entries. `uv run jobs status` lists running jobs, and `uv run jobs timeline <run id>` shows where a run's time went. To wait, poll: `sleep 300`, then check again.
+3. While it runs, source jobs (`sourcing.md`); never just wait. Every few minutes, check `uv run jobs status`, grade each run that has finished (`rubric.md`; transcripts are deleted 3 hours after a run), and turn what its log shows into `ideas.md` entries. `uv run jobs timeline <run id>` shows where a run's time went.
 
 ## The cycle
 
 1. **Baseline.** Measure 2 passes on the current code and record them when there is no baseline yet, the benchmark changed, the latest baseline is over a day old, or 3 experiments in a row were reverted.
 2. **Hypothesis.** Take the `ideas.md` entry with the best expected gain for its effort. It must rest on evidence: a run id and what happened in it.
 3. **Change.** Make exactly one change in the working tree, mark its entry **(running)**, and run `uv run pytest -q`.
-4. **Measure.** Run 2 passes. A change aimed at one ATS needs at least 4 live runs there; add passes until it has them.
+4. **Measure.** Run 2 passes. A change aimed at one ATS needs at least 4 runs there, counting its reference; add passes until it has them.
 5. **Decide** by the rule below, then **record** the verdict.
 
 ## Decision rule
@@ -90,5 +90,5 @@ An infrastructure failure, such as a Claude usage limit, cua-driver, an expired 
 Rebuild the state from:
 - `git log`: the records and the current baseline.
 - `git status` and `git diff`: an uncommitted change is the running experiment, marked in `ideas.md`.
-- `uv run jobs status`, `~/.jobs/apply.log`, and `~/.jobs/eval.log`.
+- `uv run jobs status`, `~/.jobs/apply.log`, `~/.jobs/eval.log`, and the queue, `~/.jobs/queue.md`.
 - The grades in `~/.jobs/runs/*/result.json`.

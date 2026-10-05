@@ -6,7 +6,9 @@ When Adam asks you to apply to jobs (for example "apply to all internships via j
    - https://jobright.ai/jobs/recommend
    - https://app.joinhandshake.com/home
    - https://www.linkedin.com/jobs/
-2. Keep the postings Adam is eligible for, judged by the Eligibility section of `prompt.md`. Drop companies in `profile.json`'s `excluded_companies` and jobs the tracker's `Apps` tab already lists under the same company and role (read it with the Google Sheets MCP).
+
+   Fetching is faster than browsing: `eval/sourcing.md` lists posting feeds that need no browser.
+2. Keep the postings that fit Adam: new-grad roles and internships of any term (spring, summer, or other) where he meets about 80% of the qualifications. Drop a posting only for a hard miss, the kind the Eligibility section of `prompt.md` lists, such as a required PhD. When unsure, keep it: an unneeded application costs Adam nothing, while a missed one may be a job he wanted. Drop companies in `profile.json`'s `excluded_companies` and jobs the tracker's `Apps` tab already lists under the same company and role (read it with the Google Sheets MCP).
 3. Take each job's own application URL, the employer's page behind the board's Apply button. Never LinkedIn Easy Apply, and skip applications hosted on a site in `BANNED_SITES` (`src/jobs/config.py`; today, Lever).
 4. Start them in the background and keep working; never wait for them:
    `nohup uv run jobs apply <url> <url> ... >> ~/.jobs/apply.log 2>&1 &`
