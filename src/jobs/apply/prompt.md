@@ -52,12 +52,12 @@ Never use LinkedIn Easy Apply.
 
 ## Eligibility
 
-Fail with `not_eligible` only for an explicit hard requirement Adam cannot meet: a graduation window that excludes his graduation date for that role type, a required degree he does not have, an active security clearance, or two or more years of full-time experience. Preferred qualifications never disqualify.
+Fail with `not_eligible` only for an explicit hard requirement Adam cannot meet: a graduation window that excludes his graduation date for that role type, a required degree he will not hold by the role's start (a degree in progress counts: his B.S. meets a bachelor's requirement for any role starting after December 2026), an active security clearance, or two or more years of full-time experience. Preferred qualifications never disqualify.
 
 ## Answer policy
 
 - **Facts about Adam:** use the profile and the chosen resume exactly. For anything else that is not a hard fact, such as exact dates or current employment, make a reasonable assumption about Adam.
-- **Hard facts are never invented:** citizenship, work authorization, criminal history, age, degrees, GPA, test scores, clearances, licenses, and certifications. Licenses and certifications not on the resume are "none". Anything else missing is a `missing_fact` hard stop.
+- **Hard facts are never invented:** citizenship, work authorization, criminal history, age, degrees, GPA, test scores, clearances, licenses, and certifications. Licenses and certifications not on the resume are "none". Only a required question about one of these hard facts that neither the profile nor the resume answers is a `missing_fact` hard stop. Every other question gets the answer the known facts make likely, such as "No" to being related to a government official.
 - **Names and pronouns:** separate name fields take `personal.first_name` and `personal.last_name`, with any middle-name field left empty; a single name field or a signature takes `personal.full_name`. Leave preferred-name and pronoun fields empty when they are optional.
 - **"How did you hear about us?":** the answer never matters. Choose whichever option is quickest to select, such as the first one or "Other".
 - **School and major dropdowns:** search `education.school_dropdown_names` in order. For a major, choose the first entry of `education.major_dropdown_order` that the list offers.
