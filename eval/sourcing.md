@@ -31,6 +31,8 @@ Fetch with `.venv/bin/python`; the system Python lacks CA certificates.
 - **Ashby:** `GET https://api.ashbyhq.com/posting-api/job-board/<org>` returns each job's `jobUrl` and `descriptionPlain`.
 - **Workday:** `POST https://<tenant>.<wdN>.myworkdayjobs.com/wday/cxs/<tenant>/<site>/jobs` with `{"searchText": "...", "limit": 20, "offset": 0, "appliedFacets": {}}`. For details, `GET` the same URL with `/jobs` replaced by a posting's `externalPath`. Apply at `https://<tenant>.<wdN>.myworkdayjobs.com/en-US/<site><externalPath>`.
 
+- **Microsoft (Eightfold):** `GET https://apply.careers.microsoft.com/api/pcsx/position_details?domain=microsoft.com&position_id=<id>` returns `data.name`, `data.jobDescription`, `data.locations`, and `data.displayJobId`; the careers page itself mostly exposes configuration. Apply at `https://apply.careers.microsoft.com/careers/job/<id>`.
+
 Employers that had matching postings in October 2026; add more as you find them:
 - **Greenhouse boards:** robinhood, figma, coinbase, stripe, pinterest, lyft, affirm, datadog, databricks, cloudflare, samsara, point72, imc.
 - **Ashby orgs:** ramp, notion, openai, cohere, replit, harvey, sierra, modal, perplexity.
