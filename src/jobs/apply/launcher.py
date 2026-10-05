@@ -57,4 +57,4 @@ def apply(url: str, *, dry_run: bool, timeout_minutes: float, workers: int, mode
         if not dry_run:
             tracker.record(url, result, run_id)
 
-            
+    return result
