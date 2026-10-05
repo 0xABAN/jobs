@@ -15,4 +15,6 @@ Hypotheses not yet tried, best first. Each cites evidence from a run. Mark the o
 
 Things only Adam can fix, each with its run id. They stay here until he does.
 
+- **The Mac locked at about 22:35, and runs need it unlocked.** With the session locked, Chrome exposes no accessibility tree, so every click (which must go through accessibility to be trusted) is refused: run 20261004-223539-1 (NVIDIA) failed `browser_unavailable`, and the others fell back to keystrokes. `browser_click` is no way around it: on macOS cua-driver refuses its trusted route because it would bring Chrome to the front. Passes are paused until the screen is unlocked. To keep it from locking while the loop runs, turn off "Require password after screen saver begins or display is turned off" or keep the display awake (`caffeinate -d`).
+
 - **Coursework.** Run 20261004-221244-2 (Qumulo) had a required essay on his favorite CS courses, and the agent named "Data Structures and Algorithms" and "Systems Programming in C", which are on neither the profile nor the resume. Adding his real courses to `profile.json` would stop the guessing. The Qumulo application was not submitted.
