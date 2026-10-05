@@ -13,6 +13,10 @@ Read the run's `result.json`, `profile.json`, and the agent's narration, typing,
     run = Path.home() / ".jobs/runs" / sys.argv[1]
     turn, screenshots, reads = 0, [], []
 
+    # Agents type the account password at sign-in; never print it.
+    password = json.loads((Path.home() / "dev/jobs/profile.json").read_text())["personal"]["password"]
+    redact = lambda text: text.replace(password, "[password]") if password else text
+
     for line in (run / "transcript.jsonl").read_text().split("\n"):
         if not line.strip():
             continue
@@ -21,9 +25,9 @@ Read the run's `result.json`, `profile.json`, and the agent's narration, typing,
             turn += 1
             text = " ".join(b["text"] for b in event["message"]["content"] if b["type"] == "text").strip()
             if text:
-                print(f"[{turn} @{event['t']:.0f}s] {text}")
+                print(f"[{turn} @{event['t']:.0f}s] {redact(text)}")
         elif event["type"] == "tool_execution_start" and event["toolName"].endswith("browser_type"):
-            print(f"    typed @{event['t']:.0f}s: {event['args'].get('text', '')}")
+            print(f"    typed @{event['t']:.0f}s: {redact(event['args'].get('text', ''))}")
         elif event["type"] == "tool_execution_end":
             content = event["result"].get("content", [])
             screenshots += [b["data"] for b in content if b["type"] == "image"]
@@ -36,7 +40,7 @@ Read the run's `result.json`, `profile.json`, and the agent's narration, typing,
         print(path)
 
     path = Path(f"/tmp/grade-{run.name}-reads.txt")
-    path.write_text("\n".join(reads[-8:]))
+    path.write_text(redact("\n".join(reads[-8:])))
     print(path)
     EOF
 
