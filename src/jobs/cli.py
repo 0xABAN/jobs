@@ -22,7 +22,7 @@ def main() -> None:
     apply_command.add_argument("urls", nargs="+", metavar="url", help="job posting URLs")
     apply_command.add_argument("--dry-run", action="store_true", help="fill everything but do not submit")
     apply_command.add_argument("--workers", type=int, default=3, help="parallel workers, shared by every run (default 3)")
-    apply_command.add_argument("--timeout", type=float, default=15, help="minutes before an agent is stopped (default 15)")
+    apply_command.add_argument("--timeout", type=float, default=60, help="minutes before an agent is stopped (default 60)")
     apply_command.add_argument("--model", help="Pi model pattern, e.g. claude-sonnet-5-5:low (default: Pi's)")
 
     commands.add_parser("status", help="list the jobs workers are applying to now")
