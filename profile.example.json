@@ -78,6 +78,9 @@
     "full_time": "resumes/default/Adam_Torres_Encarnacion_Resume.pdf",
     "internship": "resumes/masters/Adam_Torres_Encarnacion_Resume_Masters.pdf"
   },
+  "documents": {
+    "unofficial_transcript_pdf": ""
+  },
   "tracker": {
     "sheet_id": "YOUR_GOOGLE_SHEET_ID"
   }
