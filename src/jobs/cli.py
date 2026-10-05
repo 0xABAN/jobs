@@ -6,9 +6,9 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict
 
-from jobs.apply.chrome import launch
 from jobs.apply.launcher import apply
 from jobs.apply.workers import running
+from jobs.chrome import launch
 from jobs.config import CHROME_PROFILE
 
 

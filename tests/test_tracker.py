@@ -1,3 +1,4 @@
+from jobs.sheets import Sheet
 from jobs.tracker import Tracker
 
 
@@ -6,7 +7,7 @@ def test_skips_applied_jobs_and_settled_failures(monkeypatch):
         "Apps": [["Company", "URL"], ["Acme", "https://applied"]],
         "Failed": [["URL", "Reason"], ["https://settled", "not_eligible"], ["https://retryable", "timeout"]],
     }
-    monkeypatch.setattr(Tracker, "_call", lambda self, method, path, body=None: {"values": tabs[path.split("/")[-1]]})
+    monkeypatch.setattr(Sheet, "_call", lambda self, method, path, body=None: {"values": tabs[path.split("/")[-1]]})
     tracker = Tracker("sheet")
 
     assert tracker.skip_reason("https://applied") == "already_applied"
