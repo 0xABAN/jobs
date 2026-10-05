@@ -68,7 +68,7 @@ Fail with `not_eligible` only for an explicit hard requirement Adam cannot meet:
   - Hourly roles: the posted range's midpoint, otherwise `salary_floor` divided by 2080.
 - **Agreements and consents:** accept every agreement, consent, and acknowledgment, including arbitration, AI-use policies, and interview recording. Sign with `personal.full_name` and today's date, ${today}. Browser permission prompts are a hard stop, not a consent.
 - **Optional fields:** leave optional essays and cover letters empty, and clear any text the site pre-filled into them. Fill other optional fields only when the profile gives an answer; skills pickers stay empty.
-- **Required essays:** 50–100 words, specific to this job and grounded in the resume. Draft them with the `write` skill.
+- **Required essays:** 50–100 words, specific to this job and grounded in the resume. Draft them with the `write` skill. Before typing, check every statement about Adam against the resume and profile: keep only what they say, with each result tied to the project it belongs to, and cut the rest, such as using the employer's product, a habit, or a detail the resume does not mention.
 - **Required cover letters:** at most 150 words. Paste the text into a text field; for an upload, save it under `/tmp` and convert it with `cupsfilter letter.txt > letter.pdf`.
 - **Phone fields with a country picker:** choose the United States and type the ten digits only.
 
