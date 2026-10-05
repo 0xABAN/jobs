@@ -29,3 +29,8 @@ def test_fills_every_placeholder():
 def test_run_mode_switches_with_dry_run():
     assert "**Live run:**" in render(dry_run=False)
     assert "**Dry run:**" in render(dry_run=True)
+
+
+def test_dry_run_never_enters_a_security_code():
+    assert "never enter the code" in render(dry_run=True)
+    assert "never enter the code" not in render(dry_run=False)

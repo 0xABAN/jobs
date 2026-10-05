@@ -19,7 +19,11 @@ def render_prompt(job_url: str, *, dry_run: bool, profile: dict, today: date, se
                   devtools_port: int) -> str:
     """Return the complete prompt for applying to one job in the Chrome the launcher opened."""
     if dry_run:
-        run_mode = "**Dry run:** do everything except the final submit click, and finish with status `dry_run`."
+        # A stray Return can submit a form; on Greenhouse that only sends a security code, and
+        # entering it would complete a real application.
+        run_mode = ("**Dry run:** do everything except the final submit click, and finish with status `dry_run`. "
+                    "If the site asks for a security or verification code, the form was submitted by accident: "
+                    "never enter the code; finish with status `dry_run` and say so in the explanation.")
     else:
         run_mode = "**Live run:** submit the application once every check in step 7 passes."
 
