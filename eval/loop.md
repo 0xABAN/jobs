@@ -35,7 +35,7 @@ Six workers take most of the Mac's memory. If `memory_pressure` reports less tha
        nohup uv run jobs apply --first-worker <0 or 3> <workday> <greenhouse> <ashby> >> ~/.jobs/apply.log 2>&1 &
        nohup uv run jobs apply --dry-run --first-worker <0 or 3> <references> <controls> >> ~/.jobs/eval.log 2>&1 &
 
-   A URL runs on one worker at a time across both lanes. When a fixed run comes back `skipped` as `in_progress` because the other lane had it, run it again once that run ends.
+   A URL runs on one worker at a time across both lanes, so a fixed run waits while the other lane's run of the same posting finishes.
 
 3. While it runs, source jobs (`sourcing.md`); never just wait. Every few minutes, check `uv run jobs status`, grade each run that has finished (`rubric.md`; transcripts are deleted 3 hours after a run), and turn what its log shows into `ideas.md` entries. `uv run jobs timeline <run id>` shows where a run's time went.
 
