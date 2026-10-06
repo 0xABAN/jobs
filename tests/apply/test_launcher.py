@@ -107,7 +107,8 @@ def test_skips_banned_sites_without_claiming_a_worker(monkeypatch):
 def test_connects_playwright_to_this_runs_chrome_in_place_of_cua(monkeypatch, tmp_path):
     repo, worker = tmp_path / "repo", tmp_path / "worker"
     (repo / ".pi").mkdir(parents=True)
-    (repo / ".pi/mcp.json").write_text(json.dumps({"mcpServers": {"gmail": {"command": "gmail"}, "cua-driver": {"command": "cua"}}}))
+    (repo / ".pi/mcp.json").write_text(json.dumps({"mcpServers": {
+        "gmail": {"command": "gmail"}, "google-sheets": {"command": "sheets"}, "cua-driver": {"command": "cua"}}}))
     (worker / ".pi").mkdir(parents=True)
     (worker / ".pi/mcp.json").symlink_to(repo / ".pi/mcp.json")
     monkeypatch.setattr(launcher, "REPO_ROOT", repo)

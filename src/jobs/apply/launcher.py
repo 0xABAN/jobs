@@ -92,17 +92,21 @@ def apply(url: str, *, dry_run: bool, timeout_minutes: float, workers: int, firs
 
 
 def connect_playwright(directory: Path, port: int) -> None:
-    """Give the worker's agent Playwright, attached to this run's Chrome, in place of cua-driver.
+    """Give the worker's agent Gmail and Playwright, attached to this run's Chrome, and no other MCP server.
 
     The DevTools port changes with every Chrome launch, so each run writes the worker's MCP
     config afresh from the repo's, which stays the shared source for the other servers.
     """
     config = json.loads((REPO_ROOT / ".pi/mcp.json").read_text(encoding="utf-8"))
     servers = config["mcpServers"]
-    del servers["cua-driver"]
+    # The agent needs only the browser and Gmail. Every extra server is another node process per
+    # run, and with many workers running, slow MCP startup left agents without Playwright.
+    config["mcpServers"] = servers = {"gmail": servers["gmail"]}
     servers["playwright"] = {
         "command": "npx",
-        "args": ["-y", PLAYWRIGHT_MCP, "--cdp-endpoint", f"http://127.0.0.1:{port}", "--snapshot-mode", "none"],
+        # --prefer-offline uses npx's cached copy of the pinned version without asking the registry.
+        "args": ["-y", "--prefer-offline", PLAYWRIGHT_MCP, "--cdp-endpoint", f"http://127.0.0.1:{port}",
+                 "--snapshot-mode", "none"],
         "exposure": "codemode",
         "description": "Drive the job page in Adam's background jobs Chrome",
     }
