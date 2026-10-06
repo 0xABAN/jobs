@@ -49,6 +49,51 @@ def test_a_run_can_wait_for_another_run_of_its_url(tmp_path, monkeypatch):
                 pass
 
 
+def test_greenhouse_runs_at_one_employer_wait_for_each_other(tmp_path, monkeypatch):
+    monkeypatch.setattr(workers, "WORKERS_DIR", tmp_path)
+    monkeypatch.setattr(workers, "_prepare", lambda directory: None)
+
+    class Waited(Exception):
+        pass
+
+    def sleep(seconds):
+        raise Waited
+
+    monkeypatch.setattr(workers.time, "sleep", sleep)
+
+    with workers.worker("https://job-boards.greenhouse.io/tower/jobs/1", 3):
+        # Another employer's Greenhouse job, and another site's job, run alongside.
+        with workers.worker("https://job-boards.greenhouse.io/drweng/jobs/2", 3) as other:
+            assert other is not None
+
+        with workers.worker("https://nvidia.wd5.myworkdayjobs.com/job/3", 3) as other:
+            assert other is not None
+
+        # The same employer waits, even with a free worker, so the two never share a code email.
+        with pytest.raises(Waited):
+            with workers.worker("https://boards.greenhouse.io/tower/jobs/4", 3):
+                pass
+
+
+@pytest.mark.parametrize("url, board", [
+    ("https://job-boards.greenhouse.io/stripe/jobs/8128745", "stripe"),
+    ("https://job-boards.eu.greenhouse.io/imc/jobs/4907430101?gh_src=x", "imc"),
+    ("https://job-boards.greenhouse.io/embed/job_app?for=waymo&token=7", "waymo"),
+    ("https://app.greenhouse.io/embed/job_app?token=8044334", ""),
+    ("https://jobs.ashbyhq.com/openai/55150071", None),
+])
+def test_greenhouse_board_comes_from_the_url(url, board):
+    assert workers._greenhouse_board(url) == board
+
+
+def test_a_greenhouse_url_that_hides_its_board_waits_for_any_greenhouse_run():
+    hidden = "https://app.greenhouse.io/embed/job_app?token=8024128"
+
+    assert workers._shares_codes(hidden, "https://job-boards.greenhouse.io/stripe/jobs/1")
+    assert not workers._shares_codes(hidden, "https://jobs.ashbyhq.com/openai/1")
+    assert not workers._shares_codes("https://job-boards.greenhouse.io/stripe/jobs/1", "")
+
+
 def test_prepared_chrome_copies_never_offer_to_save_passwords(tmp_path, monkeypatch):
     profile = tmp_path / "profile"
     (profile / "Default").mkdir(parents=True)

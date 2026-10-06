@@ -11,6 +11,7 @@ import shutil
 import time
 from contextlib import contextmanager
 from pathlib import Path
+from urllib.parse import parse_qs, urlparse
 
 from jobs.config import CHROME_PROFILE, REPO_ROOT, STATE_DIR
 from jobs.lock import locked
@@ -29,6 +30,7 @@ def worker(url: str, count: int, first: int = 0, *, wait_for_url: bool = False):
 
     When another worker is already applying to ``url``, yields ``None``, or with ``wait_for_url``
     waits for that run to end. Dry runs wait, so parallel experiments can repeat the same postings.
+    While another worker applies to the same employer through Greenhouse, waits for it too.
     """
     while True:
         for n in range(first, first + count):
@@ -37,7 +39,11 @@ def worker(url: str, count: int, first: int = 0, *, wait_for_url: bool = False):
                 if job is None:
                     continue
 
-                if not _claim(job, url):
+                claim = _claim(job, url)
+                if claim == "same employer":
+                    break  # wait for that run, then try again
+
+                if claim == "duplicate":
                     if wait_for_url:
                         break
 
@@ -62,18 +68,57 @@ def running() -> list[str]:
     return urls
 
 
-def _claim(job, url: str) -> bool:
-    """Write ``url`` into this worker's job file, unless another worker already has it."""
+def _claim(job, url: str) -> str:
+    """Write ``url`` into this worker's job file and return "claimed".
+
+    Returns "duplicate" instead when another worker already has ``url``, and "same employer" when
+    another worker is applying to the same employer through Greenhouse (see ``_shares_codes``).
+    """
     job.truncate(0)  # forget this worker's previous job
 
     # Check and claim under one lock, so two workers never take the same URL.
     with locked(WORKERS_DIR / "claims.lock"):
-        if url in running():
-            return False
+        others = running()
+        if url in others:
+            return "duplicate"
+
+        if any(_shares_codes(url, other) for other in others):
+            return "same employer"
 
         job.write(url)
         job.flush()
-        return True
+        return "claimed"
+
+
+def _shares_codes(url: str, other: str) -> bool:
+    """Whether applications at both URLs would get Greenhouse security codes that cannot be told apart.
+
+    Greenhouse emails each application its own code, under a subject that names only the employer,
+    so two applications to one employer at once can each type the other's code: Tower Research's
+    second application was rejected that way (run 20261005-222717-0). A URL that hides its board,
+    such as an embed with only a token, could be any employer's. A Greenhouse form on the
+    employer's own site, such as stripe.com, goes unrecognized.
+    """
+    boards = _greenhouse_board(url), _greenhouse_board(other)
+    if None in boards:
+        return False
+
+    return boards[0] == boards[1] or "" in boards
+
+
+def _greenhouse_board(url: str) -> str | None:
+    """Return the Greenhouse board ``url`` applies through, "" when the URL does not show it, or ``None`` off Greenhouse."""
+    parts = urlparse(url)
+    if not (parts.hostname or "").endswith("greenhouse.io"):
+        return None
+
+    # https://job-boards.greenhouse.io/embed/job_app?for=waymo&token=...
+    if board := parse_qs(parts.query).get("for"):
+        return board[0].lower()
+
+    # https://job-boards.greenhouse.io/<board>/jobs/<id>, but not https://app.greenhouse.io/embed/job_app?token=...
+    first, *_ = parts.path.strip("/").split("/")
+    return "" if first in ("", "embed") else first.lower()
 
 
 def _prepare(directory: Path) -> None:
