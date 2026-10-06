@@ -18,9 +18,14 @@ SKILLS = [str(Path.home() / ".pi/agent/skills/write")]
 
 # The Claude provider's tool that hands work to a Claude Code agent; a headless agent must not spawn agents.
 # Playwright tools that run page scripts, close the job's tab, or change the browser are not the agent's to use.
+# Agents only read Gmail, and their token is read-only; its tools that send, delete, or change mail are excluded too.
 EXCLUDED_TOOLS = ",".join(["AskClaude"] + [f"mcp__playwright__browser_{name}" for name in (
     "evaluate", "run_code_unsafe", "close", "resize", "drop", "emulate_media", "network_requests",
-    "network_request", "console_messages")])
+    "network_request", "console_messages")] + [f"mcp__gmail__{name}" for name in (
+    "send_email", "draft_email", "update_draft", "send_draft", "delete_draft", "reply_all", "delete_email",
+    "batch_delete_emails", "modify_email", "batch_modify_emails", "modify_thread", "report_phishing",
+    "batch_report_phishing", "create_label", "update_label", "delete_label", "get_or_create_label", "create_filter",
+    "create_filter_from_template", "delete_filter", "download_attachment", "download_email")])
 
 # Apply agents' model and thinking level, fixed so Adam's interactive Pi defaults don't change them.
 MODEL = "openai-codex/gpt-6.1-sol:low"
