@@ -6,9 +6,13 @@ from `.pi/mcp.json`; inspect their connections with `/mcp` inside Pi.
 The MCP configuration and credentials under `.mcp/` are local and gitignored.
 Run `/reload` in an existing Pi session after changing the MCP configuration.
 
-Browser control uses the `cua-driver` MCP server on this Mac (`cua-driver mcp`).
-Its daemon must run with `--grant existing-profile` (`cua-driver status`), so it
-can attach to the Chrome the launcher starts.
+Apply agents drive the job page with Playwright: each run writes its worker's MCP
+config with `@playwright/mcp` (pinned in `launcher.py`) attached over the DevTools
+port of the Chrome the launcher starts in the background, in place of the repo's
+`cua-driver` server. Pi excludes the Playwright tools that run page scripts or close
+the tab. The orchestrator's own board browsing (`jobs browse`) still uses the
+`cua-driver` MCP server (`cua-driver mcp`), whose daemon must run with
+`--grant existing-profile` (`cua-driver status`).
 
 ## Apply to jobs
 
@@ -39,7 +43,7 @@ the result. Drop `--dry-run` to submit.
 
 `uv run jobs timeline [run id]` shows where a run, finished or running, spent its
 time: the launcher's phases, then each agent turn split into model time (waiting for
-the first token, thinking, writing) and tool time, with the CUA calls inside each
+the first token, thinking, writing) and tool time, with the MCP calls inside each
 codemode script, and the slowest calls overall. It reads `result.json` and the
 transcript, whose events `pi.run` stamps with `t`, the seconds since Pi launched.
 
