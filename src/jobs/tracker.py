@@ -6,6 +6,7 @@ used or created an account for Adam. Every such account uses the profile's email
 password, so the Sheet never holds a password.
 """
 
+import re
 from datetime import date, datetime
 
 from jobs.config import STATE_DIR
@@ -32,6 +33,18 @@ class Tracker:
 
         reason = self.sheet.find(FAILED, "URL", url)[1].get("Reason")
         return reason if reason in FINAL_REASONS else None
+
+    def earlier_applications(self, url: str) -> list[dict]:
+        """Return the ``Apps`` rows for the employer at ``url``: those whose company name appears in the URL.
+
+        Comparing letters alone finds "Akuna Capital" in job-boards.greenhouse.io/akunacapital and "IMC" in
+        job-boards.eu.greenhouse.io/imc. An employer whose application site hides its name, such as
+        globalhr.wd5.myworkdayjobs.com for RTX, gets no rows, so an empty list proves nothing. Names shorter
+        than three letters are skipped: "X" would match every Workday URL's "XMLNAME".
+        """
+        address = _letters(url)
+        return [row for row in self.sheet.rows(APPLIED)
+                if len(company := _letters(row.get("jobs", ""))) >= 3 and company in address]
 
     def record(self, url: str, result, run_id: str) -> None:
         """Record a live run's result: a success in ``Apps``, a failure in ``Failed``."""
@@ -66,3 +79,7 @@ class Tracker:
                 self.sheet.update(LOGINS, number, {**account, "Last used": today})
             else:
                 self.sheet.append(LOGINS, {"Site": site, "Email": email, "First used": today, "Last used": today})
+
+
+def _letters(text: str) -> str:
+    return re.sub(r"[^a-z]", "", text.lower())

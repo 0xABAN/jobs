@@ -6,11 +6,11 @@ from jobs.config import REPO_ROOT, load_profile
 URL = "https://job-boards.greenhouse.io/example/jobs/1"
 
 
-def render(*, dry_run: bool) -> str:
+def render(*, dry_run: bool, earlier_applications=()) -> str:
     profile = load_profile(REPO_ROOT / "profile.example.json")
     return render_prompt(
         URL, dry_run=dry_run, profile=profile, today=date(2026, 10, 4), session="apply-test", chrome_pid=4242,
-        devtools_port=9333,
+        devtools_port=9333, earlier_applications=earlier_applications,
     )
 
 
@@ -34,3 +34,10 @@ def test_run_mode_switches_with_dry_run():
 def test_dry_run_never_enters_a_security_code():
     assert "never enter the code" in render(dry_run=True)
     assert "never enter the code" not in render(dry_run=False)
+
+
+def test_lists_earlier_applications_only_when_the_tracker_has_some():
+    prompt = render(dry_run=False, earlier_applications=[{"jobs": "IMC", "Role": "Graduate Software Engineer", "Applied": "2026-09-07"}])
+    assert "  - IMC: Graduate Software Engineer (2026-09-07)" in prompt
+
+    assert "earlier applications to this employer**" not in render(dry_run=False)

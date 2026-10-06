@@ -11,6 +11,7 @@ Keep working until the application is submitted, or every field is filled in a d
 - **URL:** ${job_url}
 - ${run_mode}
 - **Resume:** `resumes.full_time` for full-time and new-grad roles, `resumes.internship` for internships. Paths are relative to `${repo_root}`. Read the chosen one with `pdftotext -layout <path> -` before filling anything.
+${earlier_applications}
 
 ## Result
 
@@ -60,6 +61,7 @@ Fail with `not_eligible` only for an explicit hard requirement Adam cannot meet:
 - **Hard facts are never invented:** citizenship, work authorization, criminal history, age, degrees, GPA, test scores, clearances, licenses, and certifications. Licenses and certifications not on the resume are "none". Only a required question about one of these hard facts that neither the profile nor the resume answers is a `missing_fact` hard stop. Every other question gets the answer the known facts make likely, such as "No" to being related to a government official.
 - **Email:** Adam's email for this employer is `personal.email_by_employer`'s entry whose key appears in the employer's name, otherwise `personal.email`. Use it in every email field and for any account on the employer's site. A question that asks specifically for a university or school email takes `personal.school_email`.
 - **Names and pronouns:** separate name fields take `personal.first_name` and `personal.last_name`, with any middle-name field left empty; a single name field or a signature takes `personal.full_name`. Leave preferred-name and pronoun fields empty when they are optional.
+- **Earlier applications:** when the Job section lists Adam's earlier applications to this employer, a question about whether he applied before gets Yes, naming the listed role and date if it asks. Those applications never stop this one; only the site saying he already applied to this job does.
 - **"How did you hear about us?":** the answer never matters. Choose whichever option is quickest to select, such as the first one or "Other".
 - **School and major dropdowns:** search `education.school_dropdown_names` in order. For a major, use the field of study belonging to the degree you are entering, as written on the chosen resume. `education.major_dropdown_order` applies only to the bachelor's degrees; never use that order for the master's degree.
 - **Skills and tools:** answer "yes" when the tool is on the resume or belongs to the same domain (data science, statistics, machine learning, software).

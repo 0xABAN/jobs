@@ -18,6 +18,9 @@ def fake_run(monkeypatch, tmp_path, agent_result: str) -> list:
         def skip_reason(self, url):
             return None
 
+        def earlier_applications(self, url):
+            return []
+
         def record(self, url, result, run_id):
             recorded.append(result)
 

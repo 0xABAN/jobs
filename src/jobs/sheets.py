@@ -18,11 +18,14 @@ class Sheet:
     def __init__(self, sheet_id: str):
         self.url = f"https://sheets.googleapis.com/v4/spreadsheets/{sheet_id}"
 
+    def rows(self, tab: str) -> list[dict]:
+        """Return every row of ``tab`` below the header, as dicts keyed by the header row."""
+        header, *rows = self._call("GET", f"/values/{_range(tab)}").get("values", [[]])
+        return [dict(zip(header, cells)) for cells in rows]
+
     def find(self, tab: str, column: str, value: str) -> tuple[int | None, dict]:
         """Return the row number and contents of the first row in ``tab`` whose ``column`` is ``value``, or ``(None, {})``."""
-        header, *rows = self._call("GET", f"/values/{_range(tab)}").get("values", [[]])
-        for index, cells in enumerate(rows):
-            row = dict(zip(header, cells))
+        for index, row in enumerate(self.rows(tab)):
             if row.get(column) == value:
                 return index + 2, row  # row 1 is the header
 

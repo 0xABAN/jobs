@@ -47,6 +47,7 @@ def apply(url: str, *, dry_run: bool, timeout_minutes: float, workers: int, firs
             return Result("skipped", "in_progress", "Another worker is applying to this job.")
         if reason := tracker.skip_reason(url):
             return Result("skipped", reason, "The tracker already settles this job.")
+        earlier_applications = tracker.earlier_applications(url)
         stopwatch.lap("check")
 
         run_id = f"{datetime.now():%Y%m%d-%H%M%S}-{directory.name}"
@@ -59,6 +60,7 @@ def apply(url: str, *, dry_run: bool, timeout_minutes: float, workers: int, firs
             prompt.write_text(render_prompt(
                 url, dry_run=dry_run, profile=profile, today=date.today(), session=f"apply-{run_id}",
                 chrome_pid=chrome_pid, devtools_port=devtools_port(directory / "chrome"),
+                earlier_applications=earlier_applications,
             ), encoding="utf-8")
             try:
                 result = parse_result(pi.run(prompt, cwd=directory, log_dir=run_dir,

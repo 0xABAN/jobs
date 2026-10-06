@@ -18,6 +18,22 @@ def test_skips_applied_jobs_and_settled_failures(monkeypatch):
     assert tracker.skip_reason("https://new") is None
 
 
+def test_finds_earlier_applications_to_the_employer_in_its_url(monkeypatch):
+    apps = [["jobs", "Role", "Applied", "URL"],
+            ["IMC", "Graduate Software Engineer", "2026-09-07", ""],
+            ["Akuna Capital", "Junior Quant Researcher", "2026-10-04", ""],
+            ["X", "Engineer", "2026-10-01", ""]]
+    monkeypatch.setattr(Sheet, "_call", lambda self, method, path, body=None: {"values": apps})
+    tracker = Tracker("sheet")
+
+    assert [row["Role"] for row in tracker.earlier_applications("https://job-boards.eu.greenhouse.io/imc/jobs/4842595101")] == [
+        "Graduate Software Engineer"]
+    assert [row["jobs"] for row in tracker.earlier_applications("https://job-boards.greenhouse.io/akunacapital/jobs/1")] == [
+        "Akuna Capital"]
+    # Two-letter names would match unrelated URLs, such as every Workday URL's XMLNAME.
+    assert tracker.earlier_applications("https://acme.wd5.myworkdayjobs.com/job/XMLNAME-2027") == []
+
+
 def test_records_company_under_the_apps_header(monkeypatch, tmp_path):
     writes = []
 

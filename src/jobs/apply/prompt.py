@@ -16,8 +16,18 @@ TEMPLATE_PATH = Path(__file__).with_name("prompt.md")
 
 
 def render_prompt(job_url: str, *, dry_run: bool, profile: dict, today: date, session: str, chrome_pid: int,
-                  devtools_port: int) -> str:
-    """Return the complete prompt for applying to one job in the Chrome the launcher opened."""
+                  devtools_port: int, earlier_applications: list[dict] = ()) -> str:
+    """Return the complete prompt for applying to one job in the Chrome the launcher opened.
+
+    ``earlier_applications`` are the tracker's ``Apps`` rows for this employer, so the agent can
+    answer "Have you applied here before?" truthfully. Without any, the prompt says nothing: the
+    tracker cannot match every employer, so an empty list is no evidence of a first application.
+    """
+    history = ""
+    if earlier_applications:
+        listed = "\n".join(f"  - {row.get('jobs')}: {row.get('Role')} ({row.get('Applied')})" for row in earlier_applications)
+        history = f"- **Adam's earlier applications to this employer**, from his tracker:\n{listed}"
+
     if dry_run:
         # A stray Return can submit a form; on Greenhouse that only sends a security code, and
         # entering it would complete a real application.
@@ -36,6 +46,7 @@ def render_prompt(job_url: str, *, dry_run: bool, profile: dict, today: date, se
         chrome_pid=chrome_pid,
         devtools_port=devtools_port,
         banned_sites=", ".join(BANNED_SITES),
+        earlier_applications=history,
         # The launcher, not the agent, keeps the tracker.
         profile=json.dumps({k: v for k, v in profile.items() if k != "tracker"}, indent=2, ensure_ascii=False),
     )
