@@ -66,6 +66,7 @@
   },
   "eeo_voluntary": {
     "gender": "Decline to self-identify",
+    "gender_identity": "Decline to self-identify",
     "sexual_orientation": "Decline to self-identify",
     "ethnicity": "Decline to self-identify",
     "race": "Decline to self-identify",
