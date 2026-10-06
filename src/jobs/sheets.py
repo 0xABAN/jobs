@@ -11,8 +11,8 @@ import urllib.parse
 import urllib.request
 
 from jobs.config import REPO_ROOT
+from jobs.google import access_token
 
-CLIENT = REPO_ROOT / ".mcp/gmail-oauth.json"
 TOKEN = REPO_ROOT / ".mcp/google-sheets-token.json"
 
 # Sheets allows about 60 reads a minute per user, and 20 workers starting at once exceed it.
@@ -78,23 +78,5 @@ def _range(a1: str) -> str:
     return urllib.parse.quote(a1, safe="")
 
 
-_token = {"value": "", "expires": 0.0}
-
-
 def _access_token() -> str:
-    """Return an access token for the Sheets refresh token, exchanging it again only when it is about to expire."""
-    if time.monotonic() < _token["expires"]:
-        return _token["value"]
-
-    client = json.loads(CLIENT.read_text())["installed"]
-    form = urllib.parse.urlencode({
-        "client_id": client["client_id"],
-        "client_secret": client["client_secret"],
-        "refresh_token": json.loads(TOKEN.read_text())["refresh_token"],
-        "grant_type": "refresh_token",
-    }).encode()
-    with urllib.request.urlopen("https://oauth2.googleapis.com/token", form, timeout=30) as response:
-        reply = json.load(response)
-
-    _token.update(value=reply["access_token"], expires=time.monotonic() + reply.get("expires_in", 3600) - 300)
-    return _token["value"]
+    return access_token(TOKEN)
