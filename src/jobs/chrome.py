@@ -7,6 +7,7 @@ attaches to this process, which its ``--grant existing-profile`` allows.
 
 import json
 import os
+import shutil
 import signal
 import subprocess
 import time
@@ -26,15 +27,24 @@ FLAGS = [
     "--disable-renderer-backgrounding",
 ]
 
+# Caches Chrome rebuilds on demand. They grow each worker's profile by ~300 MB, and 20 workers
+# share a nearly full disk, so they are deleted after every run. Logins live in cookies and site
+# storage, which stay.
+CACHES = ["Default/Cache", "Default/Code Cache", "Default/Service Worker/CacheStorage",
+          "Default/Service Worker/ScriptCache", "GrShaderCache", "GraphiteDawnCache", "ShaderCache", "component_crx_cache"]
+
 
 @contextmanager
 def chrome(profile: Path, url: str):
-    """Open ``url`` in a background Chrome on ``profile``, yield its pid, and quit it afterwards."""
+    """Open ``url`` in a background Chrome on ``profile``, yield its pid, and quit it afterwards, dropping its caches."""
     pid = launch(profile, url)
     try:
         yield pid
     finally:
         close(pid)
+        if not _alive(pid):  # never delete files under a Chrome that is still running
+            for cache in CACHES:
+                shutil.rmtree(profile / cache, ignore_errors=True)
 
 
 def launch(profile: Path, url: str) -> int:
