@@ -93,5 +93,6 @@
   "tracker": {
     "sheet_id": "YOUR_GOOGLE_SHEET_ID"
   },
+  "additional_projects": [{"name": "", "url": "", "note": "", "summary": ""}],
   "pitch_template": "hello [name]!\n\nYour short pitch with [bracketed] parts the agent fills in.\n\nbest,\nyou"
 }
