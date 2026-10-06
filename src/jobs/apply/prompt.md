@@ -106,6 +106,7 @@ The call shapes below are complete; skip `describeTool`. Arguments are always fl
 | `browser_type` | `tab, ref, text, replace, mode?` | |
 | `get_window_state` | `window, max_elements: 5000, timeout_ms: 5000` | `elements[]` with `element_token`, `role`, `label` |
 | `click` | `window, element_token` | `effect` |
+| `browser_click` | `tab, ref, input_route: "dom_event"` | only for `option` refs (Filling fields) |
 | `press_key` | `window, key` | `effect` |
 | `set_agent_cursor_enabled` | `session, enabled` | |
 | `browser_set_input_files` | `tab, ref, files` | |
@@ -139,7 +140,7 @@ Find each field in a `semantic_v2` read, then fill and check it by its kind:
 | Field | Fill | Check |
 |---|---|---|
 | Text: `textbox` | `browser_type({..., ref, text, replace: true})`. Email inputs refuse `replace`; type into them while empty. | its `value` |
-| Typeahead: `combobox` whose `actions` include `type` | Type the option's full text: `browser_type({..., ref, text, replace: true, mode: "keystrokes"})`. Read once. If the announcement names the option you want ("Yes, 1 of 2."), or, when there is no announcement, the first `option` ref after the field is that option, type `"\t"` (Tab) into the same ref with `mode: "keystrokes"`: Tab chooses the highlighted option and moves on. If the check then fails, as on Ashby, which ignores Tab, type the text again and `click` the `AXStaticText` whose `label` is the option, from `get_window_state`. When the wanted option is not first, type more of its text or another spelling, and read again; "No options" means nothing matches yet. | the announcement "option Yes, selected.", or the combobox's `value` is the option |
+| Typeahead: `combobox` whose `actions` include `type` | Type the option's text: `browser_type({..., ref, text, replace: true, mode: "keystrokes"})`. Read once: the list shows as `option` refs. Choose the one whose `name` is exactly the option you want with `browser_click({..., ref: <option ref>, input_route: "dom_event"})`; it may not be the first (typing "Male" lists "Female" first). If no option matches, type a shorter or different text and read again; "No options" means nothing matches yet. | the announcement "option Male, selected.", or the combobox's `value` is the option |
 | Native dropdown: `combobox` without `type`; the read lists its choices as `option` refs | In one script with no reads in between: `click` the `AXPopUpButton` whose `label` is the field's, call `get_window_state({window, query: <option>})`, and `click` the `AXMenuItem` whose `label` is the option; if there is none, `press_key({window, key: "escape"})`. The open menu covers Adam's screen, so open it only to choose. | the combobox's `value` |
 | Workday list: `button` named "Select One" | `click` the `AXPopUpButton` with that label, take a new `get_window_state`, and `click` the `AXStaticText` whose `label` is the option. | the button's name includes the option |
 | Workday search, such as "How Did You Hear About Us?" | Type the text, type `"\n"` into the same ref with `mode: "keystrokes"` to search, then choose the result like a Workday list option. | the option shows in the field |
@@ -149,7 +150,7 @@ Never type `"\n"` (Enter) into any other field: in a form, Enter submits the who
 ### Acting
 
 - Buttons, links, checkboxes, and radios: `click({window, element_token})`, with the token of the element whose `role` (`AXButton`, `AXLink`, `AXCheckBox`, `AXRadioButton`) and `label` match, from `get_window_state`. It returns about 1 MB, so filter it inside the script. Each call invalidates the tokens from the previous one. The tree walk stops at `timeout_ms` and marks the result `truncated: true`; a truncated tree can lack the very button you need, such as Submit at the bottom of a long form. Pass `timeout_ms: 5000`, and if the result is still truncated, call again with `query` set to the label.
-- Never use `browser_click`: on this Mac its trusted clicks are refused because they would bring Chrome forward, and its synthetic clicks are ignored by sites. Never use `delivery_mode: "foreground"`.
+- Use `browser_click` only to choose a typeahead `option` ref, always with `input_route: "dom_event"`. For buttons, links, checkboxes, and radios use `click`: sites can ignore a page-level click there. Never use `delivery_mode: "foreground"`.
 - An `"unverifiable"` effect is normal; check the outcome with a snapshot.
 - Files: `browser_set_input_files({..., ref, files: [<absolute path>]})`.
 - Page dialogs (alert, confirm, beforeunload): `browser_dialog`.
