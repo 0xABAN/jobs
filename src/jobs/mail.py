@@ -60,8 +60,11 @@ JOB_CONTEXT = re.compile(r"appl(y|ying|ied|ication)|resume|candida|position|role
 # Decisions, requests, and invitations: any of these keeps a message.
 KEEP = re.compile(
     r"unfortunately|not (to |be )?(move|moving|proceed|proceeding) forward|won'?t be (moving|proceeding)"
-    r"|decided (not )?to|regret|other candidates|not (been )?selected|chosen to|not the right fit"
-    r"|position has been filled|no longer (considering|available)|invit(e|ation)|schedule (a|an|your) (call|chat|time)"
+    r"|decided (not )?to|regret|other candidates|(have|has|were|was) not (been )?selected|chosen to|not the right fit"
+    r"|position has been filled|no longer (considering|available)|schedule (a|an|your) (call|chat|time)"
+    # Receipts "invite you to learn more about" a company; invitations ask for a step.
+    r"|invit(e|ing) you to (an? |our )?(interview|chat|call|meet|speak|complete|take|schedule|next)"
+    r"|invitation to (an? )?(interview|assessment|chat|call)|interview invitation"
     r"|(book|pick|select|choose) a time|calendly|assessment|codesignal|hackerrank|codility|karat|coderpad"
     r"|coding (challenge|test|exercise)|take-?home|action required|additional (info|information) (is )?requested"
     r"|complete (your|the) (assessment|profile|application)|offer letter|next round|phone screen", re.I)
@@ -121,11 +124,11 @@ def tracker_companies(sheet_id: str) -> set[str]:
 
 def company_pattern(name: str) -> str | None:
     """Return a regex that finds the company ``name`` as whole words in lowercase text, with or without the spaces
-    and dots between them: "The D. E. Shaw Group" finds "D. E. Shaw" and "deshaw.com". ``None`` for names
-    under three letters, which would match too much.
+    and dots between them: "The D. E. Shaw Group" finds "D. E. Shaw" and "deshaw.com", and "Point72" finds
+    "point72". ``None`` for names under three letters, which would match too much.
     """
-    words = re.findall(r"[a-z]+", COMPANY_FILLER.sub(" ", name.lower()))
-    if len("".join(words)) < 3:
+    words = re.findall(r"[a-z0-9]+", COMPANY_FILLER.sub(" ", name.lower()))
+    if len(re.sub(r"[0-9]", "", "".join(words))) < 3:
         return None
     return r"\b" + r"[\W_]*".join(words) + r"\b"
 
