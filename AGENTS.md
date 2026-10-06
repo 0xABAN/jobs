@@ -19,6 +19,8 @@ To retry failures, run `jobs apply` again on URLs from the `Failed` tab; jobs wh
 
 Mail to Adam's school address (`personal.school_email`) has not reached his Gmail since mid-September 2026, so agents never see verification or reset emails sent there, as for his NVIDIA account. Read that inbox yourself in Outlook web, where the jobs Chrome profile is signed in (`uv run jobs browse https://outlook.office.com/mail/`), for example to reset an employer account's password to `personal.password` before its jobs run.
 
+Apple's job site needs Adam's Apple Account, which agents never sign in to. Adam signed in to jobs.apple.com in worker 5's Chrome (2026-10-05), so run Apple jobs there alone: `uv run jobs apply --workers 1 --first-worker 5 <apple urls>`. If that session lapses, the runs fail with `login_issue`; ask Adam to sign in again in a Chrome opened on that worker's profile.
+
 Adam's answers live in `profile.json` (gitignored; `profile.example.json` shows its shape), and the apply agent's instructions are `src/jobs/apply/prompt.md`. Each run's prompt, transcript, and result are in `~/.jobs/runs/<run id>/`.
 
 To improve the harness while applying, follow `eval/loop.md`.
