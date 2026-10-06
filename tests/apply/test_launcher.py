@@ -42,6 +42,7 @@ def fake_run(monkeypatch, tmp_path, agent_result: str) -> list:
     monkeypatch.setattr(launcher, "worker", worker)
     monkeypatch.setattr(launcher, "chrome", chrome)
     monkeypatch.setattr(launcher, "devtools_port", lambda profile: 9333)
+    monkeypatch.setattr(launcher, "connect_playwright", lambda directory, port: None)
     monkeypatch.setattr(launcher, "RUNS_DIR", tmp_path / "runs")
     monkeypatch.setattr(launcher.pi, "run", lambda prompt, **options: f"```json\n{agent_result}\n```")
     return recorded
@@ -101,3 +102,19 @@ def test_skips_banned_sites_without_claiming_a_worker(monkeypatch):
     result = launcher.apply("https://jobs.lever.co/acme/123", dry_run=False, timeout_minutes=1, workers=1)
 
     assert (result.status, result.reason) == ("skipped", "banned_site")
+
+
+def test_connects_playwright_to_this_runs_chrome_in_place_of_cua(monkeypatch, tmp_path):
+    repo, worker = tmp_path / "repo", tmp_path / "worker"
+    (repo / ".pi").mkdir(parents=True)
+    (repo / ".pi/mcp.json").write_text(json.dumps({"mcpServers": {"gmail": {"command": "gmail"}, "cua-driver": {"command": "cua"}}}))
+    (worker / ".pi").mkdir(parents=True)
+    (worker / ".pi/mcp.json").symlink_to(repo / ".pi/mcp.json")
+    monkeypatch.setattr(launcher, "REPO_ROOT", repo)
+
+    launcher.connect_playwright(worker, 9333)
+
+    servers = json.loads((worker / ".pi/mcp.json").read_text())["mcpServers"]
+    assert set(servers) == {"gmail", "playwright"}
+    assert "http://127.0.0.1:9333" in servers["playwright"]["args"]
+    assert "cua-driver" in json.loads((repo / ".pi/mcp.json").read_text())["mcpServers"]  # the repo's config is untouched

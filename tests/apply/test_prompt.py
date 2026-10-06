@@ -21,7 +21,6 @@ def test_fills_every_placeholder():
     assert URL in prompt
     assert '"full_name": "YOUR_LEGAL_NAME"' in prompt
     assert f"relative to `{REPO_ROOT}`" in prompt
-    assert 'session: "apply-test"' in prompt
     assert "pid `4242`" in prompt
     assert f"uv run --project {REPO_ROOT} jobs captcha 9333" in prompt
 

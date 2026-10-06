@@ -17,7 +17,10 @@ EXTENSIONS = ["builtin:mcp", "builtin:codemode", str(Path.home() / ".pi/agent/np
 SKILLS = [str(Path.home() / ".pi/agent/skills/write")]
 
 # The Claude provider's tool that hands work to a Claude Code agent; a headless agent must not spawn agents.
-EXCLUDED_TOOLS = "AskClaude"
+# Playwright tools that run page scripts, close the job's tab, or change the browser are not the agent's to use.
+EXCLUDED_TOOLS = ",".join(["AskClaude"] + [f"mcp__playwright__browser_{name}" for name in (
+    "evaluate", "run_code_unsafe", "close", "resize", "drop", "emulate_media", "network_requests",
+    "network_request", "console_messages")])
 
 # Apply agents' model and thinking level, fixed so Adam's interactive Pi defaults don't change them.
 MODEL = "openai-codex/gpt-6.1-sol:low"

@@ -77,87 +77,71 @@ Fail with `not_eligible` only for an explicit hard requirement Adam cannot meet:
 
 ## Steps
 
-1. Attach to Chrome (see Browser); it is already open on the job URL.
+1. Take a snapshot (see Browser); Chrome is already open on the job URL.
 2. Read the posting: company, role, location, eligibility, and salary range. Confirm that the page matches the job you were given, and check the hard stops.
 3. Click Apply. If a new tab or window opens, continue there.
 4. Login wall: continue if already signed in, and prefer "apply as guest" or "continue without an account". Otherwise use Adam's account on the application site; Workday and similar sites keep one per employer. Always use Adam's email for this employer and `personal.password`: sign in; if that fails, create the account; if the site says it already exists, reset its password to `personal.password` through the "Forgot password" email. Reset passwords only on the employer's application site, never on job boards such as LinkedIn, Indeed, or Handshake, and never for an account that is also a personal account outside job applications, such as an Apple Account (iCloud) or a Google, Microsoft, or Meta (Facebook) account: when sign-in to one of those fails, fail with `login_issue`. If `personal.password` is empty, the site's rules reject it, or none of this works, fail with `login_issue`. For a verification code or link, search Gmail narrowly by company and the email you used; mail to any of Adam's addresses arrives in his Gmail. Use only the newest matching message.
 5. Upload the resume first: many sites parse it and pre-fill fields. Check every pre-filled field against the profile and the resume, and fix mismatches.
 6. Fill every required field and every optional field the profile answers. On multi-page forms, fill each page and click Next or Continue.
-7. Verify before submitting: every field with `states.required` has a value, text values are correct, each dropdown passed its check in Filling fields, and the resume's filename appears on the page. Upload refs do not carry `states.required`, so check the resume separately.
+7. Verify before submitting: take one full `browser_snapshot` and check that every required field (its name ends in `*` or it shows `[required]`) has a value, text values are correct, each dropdown passed its check in Filling fields, and the resume's filename appears on the page. A typeahead's chosen option shows as text next to the field, not after its colon. Return that check from the script as one line per field, `name: value`, so the run's log keeps the final form; logs cut long snapshots.
 8. Submit, unless this is a dry run. Snapshot the page. Fix validation errors and retry; retries count toward the 3-attempt limit.
 9. Confirm: the page says the application was received, or a confirmation email arrived. Without either, fail with `unconfirmed`.
-10. End the browser session, then write the result.
+10. Write the result.
 
-**Workday:** each employer has its own Workday account (step 4). After Apply, choose "Autofill with Resume" and upload the resume through `dom_refs_v1` (see Reading). The pages that follow (My Information, My Experience, Application Questions, Voluntary Disclosures, Self Identify, Review) each end with "Save and Continue".
+**Workday:** each employer has its own Workday account (step 4). After Apply, choose "Autofill with Resume" and upload the resume (see Filling fields). The pages that follow (My Information, My Experience, Application Questions, Voluntary Disclosures, Self Identify, Review) each end with "Save and Continue".
 
-**CAPTCHAs, at any step:** a reCAPTCHA badge or notice that does not stop you is not a CAPTCHA; carry on. Solve simple text or math questions yourself. For a reCAPTCHA or Cloudflare check that blocks you, run `uv run --project ${repo_root} jobs captcha ${devtools_port}` from the shell; it solves the CAPTCHA in the page and prints JSON. Then redo the blocked action, such as clicking Submit again. If it prints an `error`, or the CAPTCHA comes back after one retry, fail with `captcha`. If the site emails a verification code instead, get it from Gmail as in step 4. Greenhouse splits its 8-character code into 8 one-character boxes, and typing the whole code into the first box keeps only its first character: take a new read, then `browser_type` one character into each box in order, with `replace: true` and the default mode. Read all 8 boxes back and compare them with the code, letter case included, before clicking Submit: a wrong code can lock the application.
+**CAPTCHAs, at any step:** a reCAPTCHA badge or notice that does not stop you is not a CAPTCHA; carry on. Solve simple text or math questions yourself. For a reCAPTCHA or Cloudflare check that blocks you, run `uv run --project ${repo_root} jobs captcha ${devtools_port}` from the shell; it solves the CAPTCHA in the page and prints JSON. Then redo the blocked action, such as clicking Submit again. If it prints an `error`, or the CAPTCHA comes back after one retry, fail with `captcha`. If the site emails a verification code instead, get it from Gmail as in step 4. Greenhouse splits its 8-character code into 8 one-character boxes, and typing the whole code into the first box keeps only its first character: take a new snapshot, then `browser_type` one character into each box in order. Read all 8 boxes back and compare them with the code, letter case included, before clicking Submit: a wrong code can lock the application.
 
 ## Browser
 
-Drive Chrome through the `cua-driver` MCP server from codemode: the tool `browser_type` is `tools.mcp__cua_driver__browser_type({...})`, and each result's JSON is in `structuredContent`. Work in batches: write one codemode script per page that reads the fields, fills every field it can, and returns a compact summary (ref, name, required, value) instead of raw snapshots.
+Drive the job page through the `playwright` MCP server from codemode: the tool `browser_click` is `tools.mcp__playwright__browser_click({...})`, and each result is text. Playwright is already connected to Chrome, which runs as pid `${chrome_pid}` on Adam's `jobs` profile with his saved logins, open on the job. Chrome's window stays behind Adam's apps on purpose, and Playwright acts on the page without bringing it forward. Never launch, quit, or bring Chrome forward. Work in batches: write one codemode script per page that reads the fields, fills every field it can, and returns a compact summary instead of raw snapshots.
 
-The call shapes below are complete; skip `describeTool`. Arguments are always flat: `tab` below is shorthand for the three top-level arguments `session, target_id, tab_id`, which every tab-level call needs, and `window` for `session, pid, window_id`. So attaching is `browser_prepare({session, pid, window_id, strategy: {kind: "existing_profile"}})`. Never nest them, and never drop `session`: a call without it runs in another session, where the attachment does not exist.
+The call shapes below are complete; skip `describeTool`.
 
 | Call | Arguments | Returns |
 |---|---|---|
-| `browser_prepare` | `window, strategy: {kind: "existing_profile"}` | |
-| `list_windows` | none | `windows[]` with `pid`, `window_id` |
-| `get_browser_state` (bind) | `session, pid, window_id` | `target_id`, `tabs[]` with `tab_id`, `url`, `active` |
-| `get_browser_state` (read) | `tab, snapshot_format, query?, include_screenshot?` | `refs[]`, `content_refs[]`; a screenshot is an image block in `content` |
-| `browser_navigate` | `tab, url` | |
-| `browser_type` | `tab, ref, text, replace, mode?` | |
-| `get_window_state` | `window, max_elements: 5000, timeout_ms: 5000` | `elements[]` with `element_token`, `role`, `label` |
-| `click` | `window, element_token` | `effect` |
-| `browser_click` | `tab, ref, input_route: "dom_event"` | only for `option` refs (Filling fields) |
-| `press_key` | `window, key` | `effect` |
-| `set_agent_cursor_enabled` | `session, enabled` | |
-| `browser_set_input_files` | `tab, ref, files` | |
-| `browser_dialog` | `tab, action` (`inspect`, then `accept` or `dismiss`) | `dialog_id` |
-| `end_session` | `session` | |
-
-### Lifecycle
-
-- Chrome is already running in the background as pid `${chrome_pid}`, on Adam's `jobs` profile with his saved logins. Never launch or quit Chrome.
-- Pass `session: "${session}"` on every call.
-- Attach once: repeat `list_windows` until a window has `pid` ${chrome_pid}, then call `browser_prepare` with that window and `strategy: {kind: "existing_profile"}`. If it is refused, fail with `browser_unavailable`. Then call `set_agent_cursor_enabled({session, enabled: false})`, so no cursor is drawn over Adam's screen.
-- Chrome's window stays behind Adam's apps on purpose. Keys reach the page only through `browser_type`; `press_key` reaches only an open native menu.
-- The attachment lasts about 5 minutes. When a call is refused with `authorization_host_failed` or `browser_binding_stale`, call `browser_prepare` again with the same window, bind again, and repeat the call with the new `target_id` and `tab_id`.
-- Bind: `get_browser_state({session, pid, window_id})` returns `target_id` and `tabs[]`; work in the tab whose `url` is the job.
-- Finish: `end_session({session})` for every outcome.
+| `browser_snapshot` | none, or `target: <ref>` for one part of the page | the page as an indented tree; each element shows its role, name, state, and `[ref=…]` |
+| `browser_find` | `text` | the snapshot lines that contain the text, with their refs |
+| `browser_click` | `target: <ref>, element: <short description>` | |
+| `browser_type` | `target, element, text, slowly?` | |
+| `browser_select_option` | `target, element, values: [<option text>]` | |
+| `browser_press_key` | `key`, such as `"ArrowDown"` | |
+| `browser_file_upload` | `paths: [<absolute path>]` | |
+| `browser_handle_dialog` | `accept, promptText?` | |
+| `browser_tabs` | `action: "list"`, or `action: "select", index` | |
+| `browser_wait_for` | `text`, or `time` in seconds (at most 30) | |
+| `browser_navigate` | `url` | |
+| `browser_take_screenshot` | `scale: "css"` | an image |
 
 ### Reading
 
-- `get_browser_state({session, target_id, tab_id, snapshot_format: "semantic_v2"})` returns the visible part of the page and omits off-screen content. A read without `target_id` and `tab_id` fails with "Missing required integer field: pid".
-- Navigation and clicks return before the page finishes loading, and codemode has no timers. Repeat the read until the expected content appears, up to 10 times.
-- To list form fields, including off-screen ones, add `query: "textbox"`, `"combobox"`, `"checkbox"`, `"radio"`, or `"button"`. Each ref has `name`, `value`, `states.required`, and `actions`.
-- File inputs are refs whose `actions` include `upload`. Greenhouse shows two "Attach" buttons per file; only the hidden one has `upload`, and it can appear a moment after the form loads, so repeat the query until it does. When no ref has `upload`, as on Workday, read the tab with `snapshot_format: "dom_refs_v1"`: the file input is the ref whose `node` is `input` and `label` is `type=file`, and `browser_set_input_files` accepts it.
-- Show a screenshot to yourself with `image(result.content.find(block => block.type === "image"))`.
-- Every snapshot invalidates refs from earlier snapshots of the same tab, and navigation invalidates all refs. Use refs only from the latest snapshot.
-- Confirm each chosen option the way Filling fields says, from a read, right after choosing it. A screenshot is only a last resort.
+- `browser_snapshot()` covers the whole page, including off-screen fields: `- textbox "Email *" [ref=e12]: adam@example.com`, `- checkbox "I agree" [checked] [ref=e40]`, `- combobox "Month" [ref=e7]: May` with its `option`s listed under it. A field's value follows its colon.
+- Refs stay valid until the page changes. Take a new snapshot after any action that changes the page, such as opening a list or going to the next page.
+- Pages load after clicks and navigation. When the expected content is missing, `browser_wait_for({text})` or snapshot again, up to 10 times.
+- Show a screenshot to yourself with `image(...)` on the image block of `browser_take_screenshot`'s result. Use it only when the snapshot leaves a doubt.
 
 ### Filling fields
 
-Find each field in a `semantic_v2` read, then fill and check it by its kind:
+Find each field in a snapshot, then fill and check it by its kind:
 
 | Field | Fill | Check |
 |---|---|---|
-| Text: `textbox` | `browser_type({..., ref, text, replace: true})`. Email inputs refuse `replace`; type into them while empty. | its `value` |
-| Typeahead: `combobox` whose `actions` include `type` | Type the option's text: `browser_type({..., ref, text, replace: true, mode: "keystrokes"})`. Read once: the list shows as `option` refs. Choose the one whose `name` is exactly the option you want with `browser_click({..., ref: <option ref>, input_route: "dom_event"})`; it may not be the first (typing "Male" lists "Female" first). If no option matches, type a shorter or different text and read again; "No options" means nothing matches yet. | the announcement "option Male, selected.", or the combobox's `value` is the option |
-| Native dropdown: `combobox` without `type`; the read lists its choices as `option` refs | In one script with no reads in between: `click` the `AXPopUpButton` whose `label` is the field's, call `get_window_state({window, query: <option>})`, and `click` the `AXMenuItem` whose `label` is the option; if there is none, `press_key({window, key: "escape"})`. The open menu covers Adam's screen, so open it only to choose. | the combobox's `value` |
-| Workday list: `button` named "Select One" | `click` the `AXPopUpButton` with that label, take a new `get_window_state`, and `click` the `AXStaticText` whose `label` is the option. | the button's name includes the option |
-| Workday search, such as "How Did You Hear About Us?" | Type the text, type `"\n"` into the same ref with `mode: "keystrokes"` to search, then choose the result like a Workday list option. | the option shows in the field |
+| Text: `textbox` | `browser_type({target, element, text})` replaces what the field holds. | the value after its colon |
+| Typeahead: `combobox` without `option`s under it | `browser_click` it, then `browser_type({target, element, text: <option text>, slowly: true})`. Snapshot: the list shows `option`s. `browser_click` the `option` whose name is exactly the one you want; it may not be the first, since typing "Male" also lists "Female". If none matches, type a shorter or different text. | the field shows the option |
+| Native dropdown: `combobox` with `option`s under it | `browser_select_option({target, element, values: [<option text>]})` | the option after its colon |
+| Workday list: `button` named "Select One" | `browser_click` it, snapshot, then `browser_click` the `option` with the wanted name. | the button's name includes the option |
+| Workday search, such as "How Did You Hear About Us?" | `browser_type` the text, `browser_press_key({key: "Enter"})` to search, snapshot, then click the result. | the option shows in the field |
+| Checkbox or radio | `browser_click` it. | `[checked]` |
+| File | Playwright uploads only files inside the current directory, so first `cp` the file into it from the shell. Then `browser_click` the upload button ("Attach", "Upload", "Select files") and `browser_file_upload({paths: [<absolute path of the copy>]})`. | the file name shows on the page |
 
-Never type `"\n"` (Enter) into any other field: in a form, Enter submits the whole application, even while it chooses a dropdown option, and even in a dry run. Only Workday search fields take it.
+Never press Enter in any other field: in a form, Enter submits the whole application, even in a dry run.
 
 ### Acting
 
-- Buttons, links, checkboxes, and radios: `click({window, element_token})`, with the token of the element whose `role` (`AXButton`, `AXLink`, `AXCheckBox`, `AXRadioButton`) and `label` match, from `get_window_state`. It returns about 1 MB, so filter it inside the script. Each call invalidates the tokens from the previous one. The tree walk stops at `timeout_ms` and marks the result `truncated: true`; a truncated tree can lack the very button you need, such as Submit at the bottom of a long form. Pass `timeout_ms: 5000`, and if the result is still truncated, call again with `query` set to the label.
-- Use `browser_click` only to choose a typeahead `option` ref, always with `input_route: "dom_event"`. For buttons, links, checkboxes, and radios use `click`: sites can ignore a page-level click there. Never use `delivery_mode: "foreground"`.
-- An `"unverifiable"` effect is normal; check the outcome with a snapshot.
-- Files: `browser_set_input_files({..., ref, files: [<absolute path>]})`.
-- Page dialogs (alert, confirm, beforeunload): `browser_dialog`.
-- New tabs or windows: bind again with `get_browser_state({session, pid, window_id})`, using `list_windows` to find a new window, and continue in the newest tab.
-- Navigation: `browser_navigate({..., url})`.
+- Buttons and links: `browser_click` with the ref from the latest snapshot.
+- Page dialogs (alert, confirm, beforeunload): `browser_handle_dialog`.
+- New tabs: `browser_tabs({action: "list"})`, then `browser_tabs({action: "select", index})` for the newest one.
+- Navigation: `browser_navigate({url})`.
 
 ## Profile
 

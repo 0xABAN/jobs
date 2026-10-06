@@ -13,13 +13,14 @@ import subprocess
 import time
 from dataclasses import asdict
 from datetime import date, datetime
+from pathlib import Path
 
 from jobs import pi
 from jobs.apply.prompt import render_prompt
 from jobs.apply.result import Result, parse_result
 from jobs.apply.workers import worker
 from jobs.chrome import chrome, devtools_port
-from jobs.config import STATE_DIR, banned, email_for, load_profile
+from jobs.config import REPO_ROOT, STATE_DIR, banned, email_for, load_profile
 from jobs.tracker import Tracker
 
 RUNS_DIR = STATE_DIR / "runs"
@@ -27,6 +28,9 @@ RUNS_DIR = STATE_DIR / "runs"
 # Transcripts reach about 100 MB per run, mostly raw CUA results, and prompts hold Adam's
 # password, so each run's logs except result.json are deleted after this long.
 LOGS_KEPT_HOURS = 3
+
+# Pinned, so a Playwright release cannot change the agent's tools between runs.
+PLAYWRIGHT_MCP = "@playwright/mcp@0.0.83"
 
 
 def apply(url: str, *, dry_run: bool, timeout_minutes: float, workers: int, first_worker: int = 0,
@@ -55,6 +59,7 @@ def apply(url: str, *, dry_run: bool, timeout_minutes: float, workers: int, firs
 
         with chrome(directory / "chrome", url) as chrome_pid:
             stopwatch.lap("chrome")
+            connect_playwright(directory, devtools_port(directory / "chrome"))
             run_dir.mkdir(parents=True, mode=0o700)
             prompt = run_dir / "prompt.md"
             prompt.write_text(render_prompt(
@@ -84,6 +89,27 @@ def apply(url: str, *, dry_run: bool, timeout_minutes: float, workers: int, firs
             (run_dir / "result.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
 
     return result
+
+
+def connect_playwright(directory: Path, port: int) -> None:
+    """Give the worker's agent Playwright, attached to this run's Chrome, in place of cua-driver.
+
+    The DevTools port changes with every Chrome launch, so each run writes the worker's MCP
+    config afresh from the repo's, which stays the shared source for the other servers.
+    """
+    config = json.loads((REPO_ROOT / ".pi/mcp.json").read_text(encoding="utf-8"))
+    servers = config["mcpServers"]
+    del servers["cua-driver"]
+    servers["playwright"] = {
+        "command": "npx",
+        "args": ["-y", PLAYWRIGHT_MCP, "--cdp-endpoint", f"http://127.0.0.1:{port}", "--snapshot-mode", "none"],
+        "exposure": "codemode",
+        "description": "Drive the job page in Adam's background jobs Chrome",
+    }
+
+    path = directory / ".pi/mcp.json"
+    path.unlink(missing_ok=True)  # a symlink to the repo's config until now
+    path.write_text(json.dumps(config, indent=2), encoding="utf-8")
 
 
 def prune_logs() -> None:
