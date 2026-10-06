@@ -53,7 +53,7 @@ Never use LinkedIn Easy Apply.
 
 ## Eligibility
 
-Fail with `not_eligible` only for an explicit hard requirement Adam cannot meet: a graduation window that excludes his graduation date for that role type, a required degree he will not hold by the role's start (a degree in progress counts: his B.S. meets a bachelor's requirement for any role starting after December 2026), an active security clearance, or two or more years of full-time experience. Preferred qualifications never disqualify.
+Fail with `not_eligible` only for an explicit hard requirement Adam cannot meet: a graduation window that excludes his graduation date for that role type, a required degree he will not hold by the role's start (a degree in progress counts: his B.S. meets a bachelor's requirement for any role starting after December 2026), an active security clearance, or two or more years of full-time experience. Preferred qualifications never disqualify. Nor does a degree's field: Adam's Data Science, Statistics, and Artificial Intelligence degrees qualify for a required computer science, engineering, math, or other technical degree, even without "or related field" (Adam's rule, 2026-10-05).
 
 ## Answer policy
 
