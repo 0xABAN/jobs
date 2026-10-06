@@ -26,7 +26,8 @@
     "dual_citizenship": "None",
     "other_countries": "None: no citizenship, passport, permanent residency, or refugee/asylum status in any other country",
     "legally_authorized_to_work": "Yes",
-    "require_sponsorship": "No"
+    "require_sponsorship": "No",
+    "security_clearance": "None"
   },
   "availability": {
     "earliest_start_date": "Immediately",
@@ -54,7 +55,9 @@
     "enrollment": "",
     "major_dropdown_order": ["Your Major"],
     "sat": "",
-    "act": ""
+    "act": "",
+    "gre": "",
+    "graduate_gpa": ""
   },
   "preferences": {
     "work_arrangement_order": ["Remote", "Hybrid", "Onsite"],
