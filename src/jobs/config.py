@@ -19,6 +19,10 @@ STATE_DIR = Path.home() / ".jobs"
 # with an hCaptcha that CapSolver cannot solve.
 BANNED_SITES = ("lever.co",)
 
+# Workers whose Chrome holds Adam's own sign-in to a site that agents never sign in to themselves,
+# keyed by worker number. Jobs on those sites run only there, and other jobs leave those workers free.
+SESSION_WORKERS = {4: ("ycombinator.com", "workatastartup.com"), 5: ("jobs.apple.com",)}
+
 
 def load_profile(path: Path = PROFILE_PATH) -> dict:
     """Read a profile file into a dict."""

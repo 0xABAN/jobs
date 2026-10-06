@@ -106,3 +106,11 @@ def test_prepared_chrome_copies_never_offer_to_save_passwords(tmp_path, monkeypa
     preferences = json.loads((tmp_path / "worker/chrome/Default/Preferences").read_text())
     assert preferences == {"credentials_enable_service": False,
                            "profile": {"name": "jobs", "password_manager_enabled": False}}
+
+
+def test_session_sites_run_on_their_worker_and_other_jobs_skip_it(monkeypatch):
+    monkeypatch.setattr(workers, "SESSION_WORKERS", {4: ("ycombinator.com",), 5: ("jobs.apple.com",)})
+
+    assert workers._candidates("https://www.ycombinator.com/companies/x/jobs/1", 20, 0) == [4]
+    assert workers._candidates("https://jobs.apple.com/en-us/details/1", 20, 0) == [5]
+    assert workers._candidates("https://job-boards.greenhouse.io/stripe/jobs/1", 8, 0) == [0, 1, 2, 3, 6, 7]

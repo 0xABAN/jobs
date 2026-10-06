@@ -13,7 +13,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from jobs.config import CHROME_PROFILE, REPO_ROOT, STATE_DIR
+from jobs.config import CHROME_PROFILE, REPO_ROOT, SESSION_WORKERS, STATE_DIR
 from jobs.lock import locked
 
 WORKERS_DIR = STATE_DIR / "workers"
@@ -31,9 +31,11 @@ def worker(url: str, count: int, first: int = 0, *, wait_for_url: bool = False):
     When another worker is already applying to ``url``, yields ``None``, or with ``wait_for_url``
     waits for that run to end. Dry runs wait, so parallel experiments can repeat the same postings.
     While another worker applies to the same employer through Greenhouse, waits for it too.
+    A job on a site in ``SESSION_WORKERS`` runs only on the worker holding Adam's sign-in there,
+    and other jobs skip those workers.
     """
     while True:
-        for n in range(first, first + count):
+        for n in _candidates(url, count, first):
             directory = WORKERS_DIR / str(n)
             with locked(directory / "job", wait=False) as job:
                 if job is None:
@@ -55,6 +57,16 @@ def worker(url: str, count: int, first: int = 0, *, wait_for_url: bool = False):
                 return
 
         time.sleep(5)
+
+
+def _candidates(url: str, count: int, first: int) -> list[int]:
+    """Return the numbers of the workers that may run ``url``, in the order to try them."""
+    host = urlparse(url).hostname or ""
+    for n, sites in SESSION_WORKERS.items():
+        if any(host == site or host.endswith("." + site) for site in sites):
+            return [n]
+
+    return [n for n in range(first, first + count) if n not in SESSION_WORKERS]
 
 
 def running() -> list[str]:
