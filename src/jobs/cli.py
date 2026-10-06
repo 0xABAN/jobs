@@ -22,7 +22,7 @@ def main() -> None:
     apply_command = commands.add_parser("apply", help="apply to jobs in parallel; print one JSON result per job")
     apply_command.add_argument("urls", nargs="+", metavar="url", help="job posting URLs")
     apply_command.add_argument("--dry-run", action="store_true", help="fill everything but do not submit")
-    apply_command.add_argument("--workers", type=int, default=3, help="parallel workers, shared by every run (default 3)")
+    apply_command.add_argument("--workers", type=int, default=20, help="parallel workers, shared by every run (default 20)")
     apply_command.add_argument("--first-worker", type=int, default=0,
                                help="number of the first worker to use, so parallel experiments keep separate workers (default 0)")
     apply_command.add_argument("--timeout", type=float, default=60, help="minutes before an agent is stopped (default 60)")
