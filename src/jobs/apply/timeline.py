@@ -4,7 +4,7 @@ The launcher's phases come from the run's ``result.json``. The agent's steps com
 its transcript, whose events ``pi.run`` stamps with ``t``, the seconds since Pi launched.
 Each agent turn is one model call, then the tools it called. The model call splits into
 the wait for its first token, thinking, and writing the reply and tool calls; the tools
-include the CUA calls that each codemode script made.
+include the browser and other MCP calls that each codemode script made.
 """
 
 import json
@@ -12,7 +12,6 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
 
-CUA_PREFIX = "mcp__cua_driver__"
 
 
 @dataclass
@@ -67,7 +66,9 @@ def read_turns(transcript: Path) -> tuple[list[Turn], float]:
             started[event["toolCallId"]] = last
         elif kind == "tool_execution_end":
             call_id = event["toolCallId"]
-            name = event["toolName"].removeprefix(CUA_PREFIX)
+            name = event["toolName"]
+            if name.startswith("mcp__"):  # mcp__<server>__<tool>: the tool name says enough
+                name = name.split("__", 2)[2]
             turns[-1].calls.append(Call(name, last - started.pop(call_id), nested=call_id not in model_calls))
         elif kind == "turn_end":
             turns[-1].end = last
@@ -108,7 +109,7 @@ def _model(turn: Turn) -> str:
 
 
 def _tools(turn: Turn) -> str:
-    """Format a turn's tool time and its calls; a codemode call lists the CUA calls its script made."""
+    """Format a turn's tool time and its calls; a codemode call lists the MCP calls its script made."""
     if turn.model_end is None:
         return ""
 
