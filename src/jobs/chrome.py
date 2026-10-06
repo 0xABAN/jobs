@@ -25,6 +25,8 @@ FLAGS = [
     "--disable-background-timer-throttling",
     "--disable-backgrounding-occluded-windows",
     "--disable-renderer-backgrounding",
+    # Many workers share a nearly full disk; cap each run's HTTP cache (64 MB) while it runs.
+    "--disk-cache-size=67108864",
 ]
 
 # Caches Chrome rebuilds on demand. They grow each worker's profile by ~300 MB, and 20 workers
