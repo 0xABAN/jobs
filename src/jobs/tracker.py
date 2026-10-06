@@ -8,6 +8,7 @@ password, so the Sheet never holds a password.
 
 import re
 from datetime import date, datetime
+from urllib.parse import parse_qs, urlparse
 
 from jobs.config import STATE_DIR
 from jobs.lock import locked
@@ -35,16 +36,19 @@ class Tracker:
         return reason if reason in FINAL_REASONS else None
 
     def earlier_applications(self, url: str) -> list[dict]:
-        """Return the ``Apps`` rows for the employer at ``url``: those whose company name appears in the URL.
+        """Return the ``Apps`` rows for the employer at ``url``: those whose company name appears in the URL,
+        or whose own URL went through the same application site.
 
         Comparing letters alone finds "Akuna Capital" in job-boards.greenhouse.io/akunacapital and "IMC" in
-        job-boards.eu.greenhouse.io/imc. An employer whose application site hides its name, such as
-        globalhr.wd5.myworkdayjobs.com for RTX, gets no rows, so an empty list proves nothing. Names shorter
-        than three letters are skipped: "X" would match every Workday URL's "XMLNAME".
+        job-boards.eu.greenhouse.io/imc. Names shorter than three letters are skipped: "X" would match every
+        Workday URL's "XMLNAME". A site that hides the employer's name, such as Hudson River Trading's
+        Greenhouse board "wehrtyou", matches only rows that recorded a URL there, and older rows have none,
+        so an empty list proves nothing.
         """
-        address = _letters(url)
+        address, site = _letters(url), _site(url)
         return [row for row in self.sheet.rows(APPLIED)
-                if len(company := _letters(row.get("jobs", ""))) >= 3 and company in address]
+                if (len(company := _letters(row.get("jobs", ""))) >= 3 and company in address)
+                or (site is not None and _site(row.get("URL", "")) == site)]
 
     def record(self, url: str, result, run_id: str) -> None:
         """Record a live run's result: a success in ``Apps``, a failure in ``Failed``."""
@@ -83,3 +87,26 @@ class Tracker:
 
 def _letters(text: str) -> str:
     return re.sub(r"[^a-z]", "", text.lower())
+
+
+# Application sites that serve many employers from one host. Greenhouse and Ashby boards are told apart by
+# path; for the others, a host would match other employers' applications, so they name no site.
+SHARED_HOSTS = ("smartrecruiters.com", "workable.com", "rippling.com", "jobvite.com", "lever.co", "dover.com",
+                "wellfound.com", "linkedin.com")
+
+
+def _site(url: str) -> str | None:
+    """Name the employer's application site at ``url``: its board on Greenhouse or Ashby, which host many
+    employers, otherwise its host. ``None`` when the URL does not show it."""
+    parts = urlparse(url)
+    host = (parts.hostname or "").removeprefix("www.")
+    if host.endswith(SHARED_HOSTS):
+        return None
+
+    for ats in ("greenhouse.io", "ashbyhq.com"):
+        if host.endswith(ats):
+            # job-boards.greenhouse.io/<board>/jobs/<id>, .../embed/job_app?for=<board>, jobs.ashbyhq.com/<org>/<id>
+            board = parse_qs(parts.query).get("for", [parts.path.strip("/").split("/")[0]])[0].lower()
+            return None if board in ("", "embed") else f"{ats}/{board}"
+
+    return host or None

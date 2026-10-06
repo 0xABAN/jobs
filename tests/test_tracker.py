@@ -34,6 +34,24 @@ def test_finds_earlier_applications_to_the_employer_in_its_url(monkeypatch):
     assert tracker.earlier_applications("https://acme.wd5.myworkdayjobs.com/job/XMLNAME-2027") == []
 
 
+def test_finds_earlier_applications_through_the_same_application_site(monkeypatch):
+    apps = [["jobs", "Role", "Applied", "URL"],
+            ["Hudson River Trading", "Data Scientist Intern", "2026-10-05",
+             "https://job-boards.greenhouse.io/wehrtyou/jobs/8257369"],
+            ["Stripe", "Software Engineer, Intern", "2026-10-05", "https://job-boards.greenhouse.io/stripe/jobs/8128745"],
+            ["Notion", "Software Engineer", "2026-10-01", "https://jobs.ashbyhq.com/notion/1"],
+            ["Hidden", "Engineer", "2026-10-01", "https://app.greenhouse.io/embed/job_app?token=1"]]
+    monkeypatch.setattr(Sheet, "_call", lambda self, method, path, body=None: {"values": apps})
+    tracker = Tracker("sheet")
+
+    # The board "wehrtyou" does not name Hudson River Trading, but the earlier row went through it.
+    assert [row["Role"] for row in tracker.earlier_applications("https://boards.greenhouse.io/wehrtyou/jobs/1")] == [
+        "Data Scientist Intern"]
+    # A URL that hides its board matches no one through the site alone, nor does a host many employers share.
+    assert tracker.earlier_applications("https://app.greenhouse.io/embed/job_app?token=2") == []
+    assert tracker_module._site("https://jobs.smartrecruiters.com/ServiceNow/1") is None
+
+
 def test_records_company_under_the_apps_header(monkeypatch, tmp_path):
     writes = []
 
