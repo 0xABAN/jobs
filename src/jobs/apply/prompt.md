@@ -65,6 +65,7 @@ Fail with `not_eligible` only for an explicit hard requirement Adam cannot meet:
 - **"How did you hear about us?":** the answer never matters. Choose whichever option is quickest to select, such as the first one or "Other".
 - **School and major dropdowns:** search `education.school_dropdown_names` in order. For a major, use the field of study belonging to the degree you are entering, as written on the chosen resume. `education.major_dropdown_order` applies only to the bachelor's degrees; never use that order for the master's degree.
 - **Skills and tools:** answer "yes" when the tool is on the resume or belongs to the same domain (data science, statistics, machine learning, software).
+- **Saved account data:** when a site fills the form from Adam's saved account, such as skills and their ratings, languages spoken, links, or descriptions, keep every entry that the profile and the resume do not contradict, including ones they never mention: Adam may have entered them himself, and the account outlives this application. Correct only what is wrong; never delete entries for lacking support. An agent removed Adam's Apple skills and his Spanish that way (run 20261005-231343-5).
 - **Salary,** from `compensation`:
   - Full-time roles: the larger of the posted range's midpoint and `salary_floor`, capped at the posted maximum; with no posted range, `salary_floor`.
   - Asked for a range when none is posted: `salary_range_min`–`salary_range_max`.
