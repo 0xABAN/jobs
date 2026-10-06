@@ -47,6 +47,7 @@
   },
   "education": {
     "school": "Your University",
+    "high_school": "Your High School",
     "school_dropdown_names": ["Your University"],
     "degrees": "B.S. in Your Major",
     "gpa": "",
