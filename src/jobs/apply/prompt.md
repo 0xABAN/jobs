@@ -87,7 +87,7 @@ Fail with `not_eligible` only for an explicit hard requirement Adam cannot meet:
 5. Upload the resume first: many sites parse it and pre-fill fields. Check every pre-filled field against the profile and the resume, and fix mismatches.
 6. Fill every required field and every optional field the profile answers. On multi-page forms, fill each page and click Next or Continue.
 7. Verify before submitting: take one full `browser_snapshot` and check that every required field (its name ends in `*` or it shows `[required]`) has a value, text values are correct, each dropdown passed its check in Filling fields, and the resume's filename appears on the page. A typeahead's chosen option shows as text next to the field, not after its colon. Return that check from the script as one line per field, `name: value`, so the run's log keeps the final form; logs cut long snapshots.
-8. Submit, unless this is a dry run. Snapshot the page. Fix validation errors and retry; retries count toward the 3-attempt limit.
+8. Submit, unless this is a dry run. Snapshot the page. Fix validation errors and retry; retries count toward the 3-attempt limit. Fix a rejected value by changing its format to one the error message allows, never by retyping it unchanged: Microsoft rejected the phone 5707105165 three times as agents retyped it unchanged, though its message allows dashes, as in 570-710-5165 (runs 20261005-220203-3 and 20261006-015121-5).
 9. Confirm: the page says the application was received, or a confirmation email arrived. Without either, fail with `unconfirmed`, but only when the form went away after Submit: a form still showing with its fields was never sent, so after 3 attempts it is `stuck`, which can be retried.
 10. Write the result.
 
