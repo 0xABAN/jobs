@@ -21,7 +21,7 @@ BANNED_SITES = ("lever.co",)
 
 # Workers whose Chrome holds Adam's own sign-in to a site that agents never sign in to themselves,
 # keyed by worker number. Jobs on those sites run only there, and other jobs leave those workers free.
-SESSION_WORKERS = {4: ("ycombinator.com", "workatastartup.com"), 5: ("jobs.apple.com",)}
+SESSION_WORKERS = {4: ("ycombinator.com", "workatastartup.com"), 5: ("jobs.apple.com", "careers.microsoft.com")}
 
 
 def load_profile(path: Path = PROFILE_PATH) -> dict:
