@@ -13,7 +13,7 @@ from jobs.apply.workers import running
 from jobs.captcha import solve
 from jobs.chrome import launch
 from jobs.config import CHROME_PROFILE, load_profile
-from jobs.mail import authorize, clean_confirmations, clean_now_and_then
+from jobs.mail import GRACE_MINUTES, authorize, clean_confirmations, clean_now_and_then, schedule
 
 
 def main() -> None:
@@ -41,8 +41,12 @@ def main() -> None:
 
     clean_mail = commands.add_parser("clean-mail", help="move automated application receipts and codes to Gmail's Trash")
     clean_mail.add_argument("--days", type=int, default=2, help="look back this many days (default 2)")
-    clean_mail.add_argument("--grace", type=float, default=60,
-                            help="skip mail younger than this many minutes, which a running agent may still read (default 60)")
+    clean_mail.add_argument("--grace", type=float, default=GRACE_MINUTES,
+                            help="skip mail younger than this many minutes, which a running agent may still read "
+                                 "(default %(default)s)")
+
+    mail_schedule = commands.add_parser("mail-schedule", help="have launchd run clean-mail every few minutes")
+    mail_schedule.add_argument("--every", type=int, default=15, help="minutes between cleanups (default 15)")
     clean_mail.add_argument("--dry-run", action="store_true", help="list what would be trashed without trashing it")
 
     timeline_command = commands.add_parser("timeline", help="show where an apply run spent its time, step by step")
@@ -59,7 +63,7 @@ def main() -> None:
                 result = {"status": "error", "explanation": repr(error)}
 
             print(json.dumps({"url": url, **result}), flush=True)
-            clean_mail_after(grace_minutes=args.timeout)
+            clean_mail_after(grace_minutes=GRACE_MINUTES)
             return result["status"]
 
         with ThreadPoolExecutor(args.workers) as pool:
@@ -85,6 +89,10 @@ def main() -> None:
         for message in clean_confirmations(load_profile()["tracker"]["sheet_id"], grace_minutes=args.grace,
                                            days=args.days, dry_run=args.dry_run):
             print(json.dumps(message), flush=True)
+
+    if args.command == "mail-schedule":
+        schedule(args.every)
+        print(f"clean-mail now runs every {args.every} minutes; its log is ~/.jobs/mail-cleanup.log")
 
     if args.command == "timeline":
         print(timeline(RUNS_DIR / args.run if args.run else max(RUNS_DIR.iterdir())))

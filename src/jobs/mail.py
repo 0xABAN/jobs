@@ -20,14 +20,19 @@ import hashlib
 import html
 import http.server
 import json
+import os
+import plistlib
 import re
 import secrets
+import shutil
+import subprocess
 import time
 import urllib.error
 import urllib.parse
 import urllib.request
 import webbrowser
 from dataclasses import dataclass
+from pathlib import Path
 
 from jobs.config import REPO_ROOT, STATE_DIR
 from jobs.google import TOKEN_URL, access_token, client
@@ -41,9 +46,14 @@ API = "https://gmail.googleapis.com/gmail/v1/users/me"
 # Gmail's per-user quota resets each minute; these waits span more than one.
 RETRY_WAITS = [2, 4, 8, 16, 32]
 
-# How often the apply command cleans, at most.
+# Mail younger than this stays: a running agent reads its code or receipt within a few minutes.
+GRACE_MINUTES = 15
+
+# How often the apply command cleans, at most, and how often the scheduled cleanup runs.
 CLEAN_EVERY_MINUTES = 10
 CLEANED_STAMP = STATE_DIR / "mail-cleaned"
+SCHEDULE_LABEL = "dev.jobs.clean-mail"
+SCHEDULE_PLIST = Path.home() / f"Library/LaunchAgents/{SCHEDULE_LABEL}.plist"
 
 # Narrows the search to candidates; ``classify`` decides.
 SEARCH = ('-in:trash -is:starred (subject:(application OR applying OR applied OR resume OR "security code" OR verify '
@@ -57,22 +67,30 @@ CODE = re.compile(r"security code for your application|verify your (candidate ac
                   r"|reset your password for your candidate account", re.I)
 JOB_CONTEXT = re.compile(r"appl(y|ying|ied|ication)|resume|candida|position|role\b|career", re.I)
 
-# Decisions, requests, and invitations: any of these keeps a message.
-KEEP = re.compile(
-    r"unfortunately|not (to |be )?(move|moving|proceed|proceeding) forward|won'?t be (moving|proceeding)"
-    r"|decided (not )?to|regret|other candidates|(have|has|were|was) not (been )?selected|chosen to|not the right fit"
-    r"|position has been filled|no longer (considering|available)|schedule (a|an|your) (call|chat|time)"
+# Requests for a step and invitations keep a message wherever they appear.
+ACTION = re.compile(
+    r"schedule (a|an|your) (call|chat|time)|(book|pick|select|choose) a time|calendly"
     # Receipts "invite you to learn more about" a company; invitations ask for a step.
     r"|invit(e|ing) you to (an? |our )?(interview|chat|call|meet|speak|complete|take|schedule|next)"
     r"|invitation to (an? )?(interview|assessment|chat|call)|interview invitation"
-    r"|(book|pick|select|choose) a time|calendly|assessment|codesignal|hackerrank|codility|karat|coderpad"
-    r"|coding (challenge|test|exercise)|take-?home|action required|additional (info|information) (is )?requested"
-    r"|complete (your|the) (assessment|profile|application)|offer letter|next round|phone screen", re.I)
+    r"|codesignal|hackerrank|codility|karat|coderpad|coding (challenge|test|exercise)|take-?home"
+    r"|action required|additional (info|information) (is )?requested|complete (your|the) (assessment|profile|application)"
+    r"|offer letter|next round|phone screen", re.I)
+
+# Decisions keep a message too, but receipts mention them in hedged sentences ("If other candidates
+# are better aligned, you may not hear from us"; "you may receive a coding assessment"), so these are
+# looked for only in sentences that are not hedged.
+DECISION = re.compile(
+    r"unfortunately|not (to |be )?(move|moving|proceed|proceeding) forward|won'?t be (moving|proceeding)"
+    r"|decided (not )?to|regret|other candidates|(have|has|were|was) not (been )?selected|chosen to|not the right fit"
+    r"|position has been filled|no longer (considering|available)|assessment", re.I)
+HEDGED = re.compile(r"^\W*if\b|\bif (you|we|your|there|it)\b|\b(may|might) (receive|be (contacted|asked|invited)|not hear|hear)",
+                    re.I)
 
 AUTOMATED_SENDER = re.compile(
     r"no-?reply|do-?not-?reply|donotreply|notifications?@|greenhouse-mail\.io|ashbyhq\.com|myworkday(jobs)?\.com"
     r"|workday\.com|eightfold\.ai|workablemail\.com|icims\.com|smartrecruiters|successfactors|oraclecloud\.com"
-    r"|jobvite|gem\.com|recruiting|careers|talent|hiring", re.I)
+    r"|jobvite|gem\.com|recruiting|careers|talent|hiring|campus|university|early-?careers|jobs@|apply@", re.I)
 ATS_SENDER = re.compile(r"greenhouse-mail\.io|ashbyhq\.com|workday\.com|eightfold\.ai|workablemail\.com|icims\.com"
                         r"|smartrecruiters|successfactors|oraclecloud\.com|jobvite|gem\.com", re.I)
 
@@ -101,10 +119,11 @@ def classify(message: Message, companies: set[str], now: float, grace_minutes: f
         return None
 
     text = f"{message.subject}\n{message.body}"
-    if KEEP.search(text):
+    if ACTION.search(text) or any(DECISION.search(s) for s in _sentences(text) if not HEDGED.search(s)):
         return None
 
-    named = f"{message.sender} {message.subject}".lower()
+    # Receipts name the company in the sender, the subject, or their opening lines.
+    named = f"{message.sender} {message.subject} {message.body[:500]}".lower()
     if not any(re.search(company, named) for company in companies):
         return None
 
@@ -113,6 +132,10 @@ def classify(message: Message, companies: set[str], now: float, grace_minutes: f
     if RECEIPT.search(text) and JOB_CONTEXT.search(text):
         return "receipt"
     return None
+
+
+def _sentences(text: str) -> list[str]:
+    return re.split(r"(?<=[.!?])\s+|\n+", text)
 
 
 def tracker_companies(sheet_id: str) -> set[str]:
@@ -162,6 +185,29 @@ def clean_now_and_then(sheet_id: str, *, grace_minutes: float) -> list[dict] | N
         trashed = clean_confirmations(sheet_id, grace_minutes=grace_minutes)
         CLEANED_STAMP.touch()
         return trashed
+
+
+def schedule(every_minutes: int = 15) -> None:
+    """Have launchd run ``jobs clean-mail`` every ``every_minutes`` minutes, so mail is cleaned between apply runs too.
+
+    Its output goes to ``~/.jobs/mail-cleanup.log``. ``launchctl bootout gui/$UID/dev.jobs.clean-mail``
+    and deleting ``SCHEDULE_PLIST`` stop it.
+    """
+    log = str(STATE_DIR / "mail-cleanup.log")
+    SCHEDULE_PLIST.write_bytes(plistlib.dumps({
+        "Label": SCHEDULE_LABEL,
+        "ProgramArguments": [shutil.which("uv"), "run", "--project", str(REPO_ROOT), "jobs", "clean-mail"],
+        "WorkingDirectory": str(REPO_ROOT),
+        "StartInterval": every_minutes * 60,
+        "RunAtLoad": True,
+        "Umask": 0o077,  # the log holds subjects of Adam's mail
+        "StandardOutPath": log,
+        "StandardErrorPath": log,
+    }))
+
+    domain = f"gui/{os.getuid()}"
+    subprocess.run(["launchctl", "bootout", f"{domain}/{SCHEDULE_LABEL}"], capture_output=True)  # replace any old one
+    subprocess.run(["launchctl", "bootstrap", domain, str(SCHEDULE_PLIST)], check=True)
 
 
 def authorize(email: str) -> None:

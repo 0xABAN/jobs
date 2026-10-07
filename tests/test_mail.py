@@ -4,7 +4,8 @@ from jobs.mail import Message, classify, company_pattern
 
 NOW = 1_800_000_000.0
 COMPANIES = {company_pattern(name) for name in ("Neuralink", "The D. E. Shaw Group", "Ema", "NVIDIA", "Tower Research Capital",
-                                                "Point72", "OpenAI")}
+                                                "Point72", "OpenAI", "Northwood Space", "IMC", "General Motors",
+                                                "Anduril Industries")}
 
 
 def message(sender, subject, body="", minutes_old=120, labels=()):
@@ -27,6 +28,18 @@ def message(sender, subject, body="", minutes_old=120, labels=()):
              "We received your application. In the meantime, we invite you to learn more about our hiring philosophy."), "receipt"),
     (message("Greenhouse <no-reply@us.greenhouse-mail.io>", "Security code for your application to Point72",
              "Copy and paste this code into the security code field on your application."), "code"),
+    # Receipt boilerplate that mentions other candidates or an assessment only conditionally.
+    (message("no-reply@anduril.com", "Your Application to Anduril",
+             "We've received your application. If we're further along in the process or other candidates have "
+             "experiences better aligned to the role, you may not hear from us right away."), "receipt"),
+    (message("generalmotors@myworkday.com", "Your application to 2027 Summer Intern",
+             "Thanks for applying to GM. If you are applying to a role that requires coding skills, you may receive "
+             "an invitation to take a coding assessment."), "receipt"),
+    # The company named only in the opening lines, and a campus team mailbox.
+    (message("Northwood Hiring Team <no-reply@ashbyhq.com>", "Thank you for your application!",
+             "Adam, Thank you for applying to the Software Engineering Intern role at Northwood Space."), "receipt"),
+    (message("campusus@imc.com", "We've got it! Your application for Graduate Quantitative Researcher",
+             "Thank you for applying to the role at IMC Trading! We have received your application."), "receipt"),
 ])
 def test_finished_runs_receipts_and_codes_are_trashed(mail, reason):
     assert classify(mail, COMPANIES, NOW, grace_minutes=60) == reason
@@ -42,6 +55,13 @@ def test_finished_runs_receipts_and_codes_are_trashed(mail, reason):
             "Thanks for applying. You have not been selected for this role."),
     message("no-reply@ashbyhq.com", "Thank you for applying to OpenAI",
             "We received your application and would like to invite you to an interview."),
+    # A request hidden in a conditional sentence still keeps the message, as does a plain decision.
+    message("no-reply@ashbyhq.com", "Thank you for applying to Neuralink",
+            "Thanks for applying! If you're still interested, please schedule a time with our recruiter."),
+    message("no-reply@anduril.com", "Your Application to Anduril",
+            "Thank you for applying. We have decided to move forward with other candidates."),
+    message("generalmotors@myworkday.com", "Your application to 2027 Summer Intern",
+            "Thanks for applying to GM. You have been invited to complete a coding assessment by Friday."),
     # An assessment invitation that looks like a receipt.
     message("no-reply@ashbyhq.com", "Neuralink | Confirmation on your Application + CodeSignal",
             "Thanks for applying! Please complete the CodeSignal assessment."),
