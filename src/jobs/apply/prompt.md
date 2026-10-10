@@ -111,6 +111,7 @@ The call shapes below are complete; skip `describeTool`.
 | `browser_select_option` | `target, element, values: [<option text>]` | |
 | `browser_press_key` | `key`, such as `"ArrowDown"` | |
 | `browser_file_upload` | `paths: [<absolute path>]` | |
+| `browser_drop` | `target, element, paths: [<absolute path>]` | drops files on the element, as if dragged from Finder |
 | `browser_handle_dialog` | `accept, promptText?` | |
 | `browser_tabs` | `action: "list"`, or `action: "select", index` | |
 | `browser_wait_for` | `text`, or `time` in seconds (at most 30) | |
@@ -136,7 +137,7 @@ Find each field in a snapshot, then fill and check it by its kind:
 | Workday list: `button` named "Select One" | `browser_click` it, snapshot, then `browser_click` the `option` with the wanted name. | the button's name includes the option |
 | Workday search, such as "How Did You Hear About Us?" | `browser_type` the text, `browser_press_key({key: "Enter"})` to search, snapshot, then click the result. | the option shows in the field |
 | Checkbox or radio | `browser_click` it. | `[checked]` |
-| File | Playwright uploads only files inside the current directory, so first `cp` the file into it from the shell. Then `browser_click` the upload button ("Attach", "Upload", "Select files") and `browser_file_upload({paths: [<absolute path of the copy>]})`. | the file name shows on the page |
+| File | Playwright uploads only files inside the current directory, so first `cp` the file into it from the shell. Then `browser_click` the upload button ("Attach", "Upload", "Select files") and `browser_file_upload({paths: [<absolute path of the copy>]})`. When the click opens no file chooser ("can only be used when there is related modal state present"), as on drop zones such as "Click to upload or drag and drop here", `browser_drop` the copy onto that zone instead (Gem forms, run 20261009-231205-2). | the file name shows on the page |
 
 Never press Enter in any other field: in a form, Enter submits the whole application, even in a dry run.
 

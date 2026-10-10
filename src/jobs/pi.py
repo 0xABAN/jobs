@@ -20,7 +20,7 @@ SKILLS = [str(Path.home() / ".pi/agent/skills/write")]
 # Playwright tools that run page scripts, close the job's tab, or change the browser are not the agent's to use.
 # Agents only read Gmail, and their token is read-only; its tools that send, delete, or change mail are excluded too.
 EXCLUDED_TOOLS = ",".join(["AskClaude"] + [f"mcp__playwright__browser_{name}" for name in (
-    "evaluate", "run_code_unsafe", "close", "resize", "drop", "emulate_media", "network_requests",
+    "evaluate", "run_code_unsafe", "close", "resize", "emulate_media", "network_requests",
     "network_request", "console_messages")] + [f"mcp__gmail__{name}" for name in (
     "send_email", "draft_email", "update_draft", "send_draft", "delete_draft", "reply_all", "delete_email",
     "batch_delete_emails", "modify_email", "batch_modify_emails", "modify_thread", "report_phishing",
