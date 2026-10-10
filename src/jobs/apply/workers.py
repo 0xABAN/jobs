@@ -139,6 +139,11 @@ def _prepare(directory: Path) -> None:
     Every time, it also turns off Chrome's offer to save passwords in that copy: the "Save
     password?" bubble after a sign-up opens as a second window of the agent's Chrome, and
     CUA then refuses key presses as ambiguous between the two windows.
+
+    It also sets "Continue where you left off", the only setting under which Chrome keeps
+    session cookies across restarts. Apple's sign-in is a session cookie, and every run starts
+    a new Chrome, so without it Adam's sign-in on worker 5 was gone by the first run
+    (2026-10-10). Restoring opens no tabs, because ``launch`` starts Chrome windowless.
     """
     mcp = directory / ".pi/mcp.json"
     mcp.parent.mkdir(parents=True, exist_ok=True)
@@ -158,4 +163,5 @@ def _prepare(directory: Path) -> None:
     preferences = json.loads(preferences_path.read_text(encoding="utf-8"))
     preferences["credentials_enable_service"] = False
     preferences.setdefault("profile", {})["password_manager_enabled"] = False
+    preferences.setdefault("session", {})["restore_on_startup"] = 1  # 1: continue where you left off
     preferences_path.write_text(json.dumps(preferences), encoding="utf-8")

@@ -94,7 +94,7 @@ def test_a_greenhouse_url_that_hides_its_board_waits_for_any_greenhouse_run():
     assert not workers._shares_codes("https://job-boards.greenhouse.io/stripe/jobs/1", "")
 
 
-def test_prepared_chrome_copies_never_offer_to_save_passwords(tmp_path, monkeypatch):
+def test_prepared_chrome_copies_keep_session_cookies_and_never_offer_to_save_passwords(tmp_path, monkeypatch):
     profile = tmp_path / "profile"
     (profile / "Default").mkdir(parents=True)
     (profile / "Default/Preferences").write_text(json.dumps({"profile": {"name": "jobs"}}))
@@ -105,7 +105,8 @@ def test_prepared_chrome_copies_never_offer_to_save_passwords(tmp_path, monkeypa
 
     preferences = json.loads((tmp_path / "worker/chrome/Default/Preferences").read_text())
     assert preferences == {"credentials_enable_service": False,
-                           "profile": {"name": "jobs", "password_manager_enabled": False}}
+                           "profile": {"name": "jobs", "password_manager_enabled": False},
+                           "session": {"restore_on_startup": 1}}
 
 
 def test_session_sites_run_on_their_worker_and_other_jobs_skip_it(monkeypatch):
