@@ -5,6 +5,7 @@ import json
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict
+from datetime import datetime
 
 from jobs import pi
 from jobs.apply.launcher import RUNS_DIR, apply
@@ -44,10 +45,10 @@ def main() -> None:
     clean_mail.add_argument("--grace", type=float, default=GRACE_MINUTES,
                             help="skip mail younger than this many minutes, which a running agent may still read "
                                  "(default %(default)s)")
+    clean_mail.add_argument("--dry-run", action="store_true", help="list what would be trashed without trashing it")
 
     mail_schedule = commands.add_parser("mail-schedule", help="have launchd run clean-mail every few minutes")
     mail_schedule.add_argument("--every", type=int, default=15, help="minutes between cleanups (default 15)")
-    clean_mail.add_argument("--dry-run", action="store_true", help="list what would be trashed without trashing it")
 
     timeline_command = commands.add_parser("timeline", help="show where an apply run spent its time, step by step")
     timeline_command.add_argument("run", nargs="?", help="run id, a directory name in ~/.jobs/runs (default: the latest)")
@@ -86,8 +87,17 @@ def main() -> None:
         print("Saved the Gmail cleanup token.")
 
     if args.command == "clean-mail":
-        for message in clean_confirmations(load_profile()["tracker"]["sheet_id"], grace_minutes=args.grace,
-                                           days=args.days, dry_run=args.dry_run):
+        try:
+            trashed = clean_confirmations(load_profile()["tracker"]["sheet_id"], grace_minutes=args.grace,
+                                          days=args.days, dry_run=args.dry_run)
+        except OSError as error:
+            # Offline after the Mac wakes, DNS failures, and timeouts: report it in one line; the next
+            # scheduled run tries again.
+            print(json.dumps({"time": f"{datetime.now():%Y-%m-%d %H:%M}", "mail_cleanup": "error",
+                              "explanation": repr(error)}), file=sys.stderr, flush=True)
+            sys.exit(1)
+
+        for message in trashed:
             print(json.dumps(message), flush=True)
 
     if args.command == "mail-schedule":
