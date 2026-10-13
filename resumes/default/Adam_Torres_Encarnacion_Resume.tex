@@ -78,6 +78,16 @@
     \end{tabular*}\vspace{-7pt}
 }
 
+% A subheading with a full-width detail row, such as coursework under a degree.
+\newcommand{\resumeSubheadingWithDetail}[5]{
+  \item
+    \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small#3} & \textit{\small #4} \\
+      \multicolumn{2}{l}{\small #5} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
 \newcommand{\resumeSubSubheading}[2]{
     \item
     \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
@@ -121,9 +131,10 @@
 %-----------EDUCATION-----------
 \section{\textbf{EDUCATION}}
   \resumeSubHeadingListStart
-    \resumeSubheading
+    \resumeSubheadingWithDetail
     {The Pennsylvania State University}{Aug 2023 -- Dec 2026}
       {B.S. in Data Science, B.S. in Statistics}{\textbf{\textit{GPA:}} 3.7}
+      {\textbf{Relevant Coursework:} Machine Learning, Matrix Algebra, Numerical Analysis, Data Structures \& Algorithms, Big Data}
   \resumeSubHeadingListEnd
 
 %-----------WORK EXPERIENCE-----------
