@@ -11,8 +11,7 @@ test("connects Playwright to this run's Chrome in place of the repo's other serv
   const repoConfig = join(root, "repo/.pi/mcp.json");
   const worker = join(root, "worker");
   mkdirSync(join(root, "repo/.pi"), { recursive: true });
-  writeFileSync(repoConfig, JSON.stringify({ mcpServers: {
-    gmail: { command: "gmail" }, "google-sheets": { command: "sheets" }, "cua-driver": { command: "cua" } } }));
+  writeFileSync(repoConfig, JSON.stringify({ mcpServers: { gmail: { command: "gmail" }, "google-sheets": { command: "sheets" } } }));
   mkdirSync(join(worker, ".pi"), { recursive: true });
   symlinkSync(repoConfig, join(worker, ".pi/mcp.json"));
 
@@ -21,5 +20,5 @@ test("connects Playwright to this run's Chrome in place of the repo's other serv
   const servers = JSON.parse(readFileSync(join(worker, ".pi/mcp.json"), "utf8")).mcpServers;
   assert.deepEqual(Object.keys(servers), ["gmail", "playwright"]);
   assert.ok(servers.playwright.args.includes("http://127.0.0.1:9333"));
-  assert.ok("cua-driver" in JSON.parse(readFileSync(repoConfig, "utf8")).mcpServers);
+  assert.ok("google-sheets" in JSON.parse(readFileSync(repoConfig, "utf8")).mcpServers);
 });
