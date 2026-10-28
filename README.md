@@ -23,7 +23,7 @@ Each run leaves its prompt, transcript, and `result.json` in `~/.jobs/runs/<run 
 - Google Chrome.
 - [uv](https://docs.astral.sh/uv/), which installs the dependencies, and Python 3.12 or later if you lack it, the first time you run `uv run`.
 - Node.js with `npx`, which runs the MCP servers.
-- Pi: `npm install -g @earendil-works/pi-coding-agent`. Apply agents load the `pi-claude-bridge` extension (`pi install npm:pi-claude-bridge`) and a `write` skill from `~/.pi/agent/skills/write`. Edit `src/jobs/pi.py` to drop either one.
+- Pi: `npm install -g @earendil-works/pi-coding-agent`. Apply agents load a `write` skill from `~/.pi/agent/skills/write`; edit `SKILLS` in `src/jobs/pi.py` to drop it.
 - `pdftotext`, which agents use to read resumes: `brew install poppler`.
 - A Google account for Gmail and the tracker Sheet.
 - Optional: a [CapSolver](https://www.capsolver.com/) API key for CAPTCHAs. If you want an orchestrating Pi session to browse job boards, you also need cua-driver.
