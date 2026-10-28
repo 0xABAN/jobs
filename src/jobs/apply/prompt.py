@@ -11,21 +11,22 @@ from pathlib import Path
 from string import Template
 
 from jobs.config import BANNED_SITES, REPO_ROOT
+from jobs.tracker import Application
 
 TEMPLATE_PATH = Path(__file__).with_name("prompt.md")
 
 
 def render_prompt(job_url: str, *, dry_run: bool, profile: dict, today: date, session: str, chrome_pid: int,
-                  devtools_port: int, earlier_applications: list[dict] = ()) -> str:
+                  devtools_port: int, earlier_applications: list[Application] = ()) -> str:
     """Return the complete prompt for applying to one job in the Chrome the launcher opened.
 
-    ``earlier_applications`` are the tracker's ``Apps`` rows for this employer, so the agent can
+    ``earlier_applications`` are Adam's applications to this employer in the tracker, so the agent can
     answer "Have you applied here before?" truthfully. Without any, the prompt says nothing: the
     tracker cannot match every employer, so an empty list is no evidence of a first application.
     """
     history = ""
     if earlier_applications:
-        listed = "\n".join(f"  - {row.get('jobs')}: {row.get('Role')} ({row.get('Applied')})" for row in earlier_applications)
+        listed = "\n".join(f"  - {app.company}: {app.role} ({app.applied})" for app in earlier_applications)
         history = f"- **Adam's earlier applications to this employer**, from his tracker:\n{listed}"
 
     if dry_run:

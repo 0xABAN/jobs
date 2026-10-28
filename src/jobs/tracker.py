@@ -4,9 +4,13 @@
 that has not succeeded, one row per URL. ``Logins`` lists the sites where apply agents
 used or created an account for Adam. Every such account uses the profile's email and
 password, so the Sheet never holds a password.
+
+Only this module knows the tabs' columns. ``Apps`` names its company column "jobs";
+``Failed`` still uses "Company".
 """
 
 import re
+from dataclasses import dataclass
 from datetime import date, datetime
 from urllib.parse import urlparse
 
@@ -24,6 +28,15 @@ FINAL_REASONS = {
 }
 
 
+@dataclass(frozen=True)
+class Application:
+    """A submitted application, as ``Apps`` lists it."""
+
+    company: str
+    role: str
+    applied: str  # the date, as YYYY-MM-DD
+
+
 class Tracker:
     def __init__(self, sheet_id: str):
         self.sheet = Sheet(sheet_id)
@@ -36,8 +49,8 @@ class Tracker:
         reason = self.sheet.find(FAILED, "URL", url)[1].get("Reason")
         return reason if reason in FINAL_REASONS else None
 
-    def earlier_applications(self, url: str) -> list[dict]:
-        """Return the ``Apps`` rows for the employer at ``url``: those whose company name appears in the URL,
+    def earlier_applications(self, url: str) -> list[Application]:
+        """Return the applications to the employer at ``url``: those whose company name appears in the URL,
         or whose own URL went through the same application site.
 
         Comparing letters alone finds "Akuna Capital" in job-boards.greenhouse.io/akunacapital and "IMC" in
@@ -47,9 +60,21 @@ class Tracker:
         so an empty list proves nothing.
         """
         address, site = _letters(url), _site(url)
-        return [row for row in self.sheet.rows(APPLIED)
-                if (len(company := _letters(row.get("jobs", ""))) >= 3 and company in address)
-                or (site is not None and _site(row.get("URL", "")) == site)]
+        applications = []
+
+        for row in self.sheet.rows(APPLIED):
+            company = _letters(row.get("jobs", ""))
+            same_name = len(company) >= 3 and company in address
+            same_site = site is not None and _site(row.get("URL", "")) == site
+            if same_name or same_site:
+                applications.append(Application(row.get("jobs", ""), row.get("Role", ""), row.get("Applied", "")))
+
+        return applications
+
+    def companies(self) -> list[str]:
+        """Return the company of every row in ``Apps`` and ``Failed``."""
+        return ([row.get("jobs", "") for row in self.sheet.rows(APPLIED)]
+                + [row.get("Company", "") for row in self.sheet.rows(FAILED)])
 
     def record(self, url: str, result, run_id: str) -> None:
         """Record a live run's result: a success in ``Apps``, a failure in ``Failed``."""
@@ -58,7 +83,6 @@ class Tracker:
             number, failure = self.sheet.find(FAILED, "URL", url)
 
             if result.status == "applied":
-                # Apps names its company column "jobs"; Failed still uses "Company".
                 self.sheet.append(APPLIED, {"jobs": result.company, "Role": result.role,
                                             "Applied": date.today().isoformat(), "Salary": result.salary, "URL": url})
                 if number:

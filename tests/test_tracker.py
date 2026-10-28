@@ -1,7 +1,7 @@
 from jobs import tracker as tracker_module
 from jobs.apply.result import Result
 from jobs.sheets import Sheet
-from jobs.tracker import Tracker
+from jobs.tracker import Application, Tracker
 
 
 def test_skips_applied_jobs_and_settled_failures(monkeypatch):
@@ -18,6 +18,13 @@ def test_skips_applied_jobs_and_settled_failures(monkeypatch):
     assert tracker.skip_reason("https://new") is None
 
 
+def test_lists_every_company_in_apps_and_failed(monkeypatch):
+    tabs = {"Apps": [["jobs", "Role"], ["Acme", "Engineer"]], "Failed": [["URL", "Company"], ["https://job", "Initech"]]}
+    monkeypatch.setattr(Sheet, "_call", lambda self, method, path, body=None: {"values": tabs[path.split("/")[-1]]})
+
+    assert Tracker("sheet").companies() == ["Acme", "Initech"]
+
+
 def test_finds_earlier_applications_to_the_employer_in_its_url(monkeypatch):
     apps = [["jobs", "Role", "Applied", "URL"],
             ["IMC", "Graduate Software Engineer", "2026-09-07", ""],
@@ -26,9 +33,9 @@ def test_finds_earlier_applications_to_the_employer_in_its_url(monkeypatch):
     monkeypatch.setattr(Sheet, "_call", lambda self, method, path, body=None: {"values": apps})
     tracker = Tracker("sheet")
 
-    assert [row["Role"] for row in tracker.earlier_applications("https://job-boards.eu.greenhouse.io/imc/jobs/4842595101")] == [
-        "Graduate Software Engineer"]
-    assert [row["jobs"] for row in tracker.earlier_applications("https://job-boards.greenhouse.io/akunacapital/jobs/1")] == [
+    assert tracker.earlier_applications("https://job-boards.eu.greenhouse.io/imc/jobs/4842595101") == [
+        Application("IMC", "Graduate Software Engineer", "2026-09-07")]
+    assert [app.company for app in tracker.earlier_applications("https://job-boards.greenhouse.io/akunacapital/jobs/1")] == [
         "Akuna Capital"]
     # Two-letter names would match unrelated URLs, such as every Workday URL's XMLNAME.
     assert tracker.earlier_applications("https://acme.wd5.myworkdayjobs.com/job/XMLNAME-2027") == []
@@ -45,7 +52,7 @@ def test_finds_earlier_applications_through_the_same_application_site(monkeypatc
     tracker = Tracker("sheet")
 
     # The board "wehrtyou" does not name Hudson River Trading, but the earlier row went through it.
-    assert [row["Role"] for row in tracker.earlier_applications("https://boards.greenhouse.io/wehrtyou/jobs/1")] == [
+    assert [app.role for app in tracker.earlier_applications("https://boards.greenhouse.io/wehrtyou/jobs/1")] == [
         "Data Scientist Intern"]
     # A URL that hides its board matches no one through the site alone, nor does a host many employers share.
     assert tracker.earlier_applications("https://app.greenhouse.io/embed/job_app?token=2") == []

@@ -2,6 +2,7 @@ from datetime import date
 
 from jobs.apply.prompt import render_prompt
 from jobs.config import REPO_ROOT, load_profile
+from jobs.tracker import Application
 
 URL = "https://job-boards.greenhouse.io/example/jobs/1"
 
@@ -36,7 +37,7 @@ def test_dry_run_never_enters_a_security_code():
 
 
 def test_lists_earlier_applications_only_when_the_tracker_has_some():
-    prompt = render(dry_run=False, earlier_applications=[{"jobs": "IMC", "Role": "Graduate Software Engineer", "Applied": "2026-09-07"}])
+    prompt = render(dry_run=False, earlier_applications=[Application("IMC", "Graduate Software Engineer", "2026-09-07")])
     assert "  - IMC: Graduate Software Engineer (2026-09-07)" in prompt
 
     assert "earlier applications to this employer**" not in render(dry_run=False)

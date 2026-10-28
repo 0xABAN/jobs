@@ -36,7 +36,7 @@ from pathlib import Path
 from jobs import google
 from jobs.config import REPO_ROOT, STATE_DIR
 from jobs.lock import locked
-from jobs.sheets import Sheet
+from jobs.tracker import Tracker
 
 TOKEN = REPO_ROOT / ".mcp/gmail-cleanup-token.json"
 SCOPE = "https://www.googleapis.com/auth/gmail.modify"
@@ -135,10 +135,8 @@ def _sentences(text: str) -> list[str]:
 
 
 def tracker_companies(sheet_id: str) -> set[str]:
-    """Return a pattern for each company in the tracker's ``Apps`` and ``Failed`` tabs (see ``company_pattern``)."""
-    sheet = Sheet(sheet_id)
-    names = [row.get("jobs", "") for row in sheet.rows("Apps")] + [row.get("Company", "") for row in sheet.rows("Failed")]
-    return {pattern for name in names if (pattern := company_pattern(name))}
+    """Return a pattern for each company in the tracker (see ``company_pattern``)."""
+    return {pattern for name in Tracker(sheet_id).companies() if (pattern := company_pattern(name))}
 
 
 def company_pattern(name: str) -> str | None:
