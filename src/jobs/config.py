@@ -1,7 +1,6 @@
 """Where the harness keeps its files, which sites it avoids, and how it reads Adam's profile."""
 
 import json
-import urllib.parse
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -40,12 +39,6 @@ def email_for(profile: dict, company: str | None) -> str:
             return email
 
     return personal["email"]
-
-
-def banned(url: str) -> bool:
-    """Return whether ``url`` is on one of the ``BANNED_SITES``."""
-    host = urllib.parse.urlparse(url).hostname or ""
-    return any(host == site or host.endswith("." + site) for site in BANNED_SITES)
 
 
 def env(name: str) -> str:

@@ -11,10 +11,10 @@ import shutil
 import time
 from contextlib import contextmanager
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
 
 from jobs.config import CHROME_PROFILE, REPO_ROOT, SESSION_WORKERS, STATE_DIR
 from jobs.lock import locked
+from jobs.sites import ats_board, on_site
 
 WORKERS_DIR = STATE_DIR / "workers"
 
@@ -61,9 +61,8 @@ def worker(url: str, count: int, first: int = 0, *, wait_for_url: bool = False):
 
 def _candidates(url: str, count: int, first: int) -> list[int]:
     """Return the numbers of the workers that may run ``url``, in the order to try them."""
-    host = urlparse(url).hostname or ""
     for n, sites in SESSION_WORKERS.items():
-        if any(host == site or host.endswith("." + site) for site in sites):
+        if on_site(url, sites):
             return [n]
 
     return [n for n in range(first, first + count) if n not in SESSION_WORKERS]
@@ -120,17 +119,8 @@ def _shares_codes(url: str, other: str) -> bool:
 
 def _greenhouse_board(url: str) -> str | None:
     """Return the Greenhouse board ``url`` applies through, "" when the URL does not show it, or ``None`` off Greenhouse."""
-    parts = urlparse(url)
-    if not (parts.hostname or "").endswith("greenhouse.io"):
-        return None
-
-    # https://job-boards.greenhouse.io/embed/job_app?for=waymo&token=...
-    if board := parse_qs(parts.query).get("for"):
-        return board[0].lower()
-
-    # https://job-boards.greenhouse.io/<board>/jobs/<id>, but not https://app.greenhouse.io/embed/job_app?token=...
-    first, *_ = parts.path.strip("/").split("/")
-    return "" if first in ("", "embed") else first.lower()
+    ats, board = ats_board(url) or (None, None)
+    return board if ats == "greenhouse.io" else None
 
 
 def _prepare(directory: Path) -> None:

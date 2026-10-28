@@ -20,7 +20,8 @@ from jobs.apply.prompt import render_prompt
 from jobs.apply.result import Result, parse_result
 from jobs.apply.workers import worker
 from jobs.chrome import chrome, devtools_port
-from jobs.config import REPO_ROOT, STATE_DIR, banned, email_for, load_profile
+from jobs.config import REPO_ROOT, STATE_DIR, email_for, load_profile
+from jobs.sites import banned
 from jobs.tracker import Tracker
 
 RUNS_DIR = STATE_DIR / "runs"

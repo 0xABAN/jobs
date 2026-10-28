@@ -8,11 +8,12 @@ password, so the Sheet never holds a password.
 
 import re
 from datetime import date, datetime
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import urlparse
 
 from jobs.config import STATE_DIR
 from jobs.lock import locked
 from jobs.sheets import Sheet
+from jobs.sites import ats_board, on_site
 
 APPLIED, FAILED, LOGINS = "Apps", "Failed", "Logins"
 
@@ -89,8 +90,8 @@ def _letters(text: str) -> str:
     return re.sub(r"[^a-z]", "", text.lower())
 
 
-# Application sites that serve many employers from one host. Greenhouse and Ashby boards are told apart by
-# path; for the others, a host would match other employers' applications, so they name no site.
+# Other application sites that serve many employers from one host, without boards that ``ats_board``
+# tells apart. Their host would match other employers' applications, so a URL there names no site.
 SHARED_HOSTS = ("smartrecruiters.com", "workable.com", "rippling.com", "jobvite.com", "lever.co", "dover.com",
                 "wellfound.com", "linkedin.com")
 
@@ -98,15 +99,11 @@ SHARED_HOSTS = ("smartrecruiters.com", "workable.com", "rippling.com", "jobvite.
 def _site(url: str) -> str | None:
     """Name the employer's application site at ``url``: its board on Greenhouse or Ashby, which host many
     employers, otherwise its host. ``None`` when the URL does not show it."""
-    parts = urlparse(url)
-    host = (parts.hostname or "").removeprefix("www.")
-    if host.endswith(SHARED_HOSTS):
+    if found := ats_board(url):
+        ats, board = found
+        return f"{ats}/{board}" if board else None
+
+    if on_site(url, SHARED_HOSTS):
         return None
 
-    for ats in ("greenhouse.io", "ashbyhq.com"):
-        if host.endswith(ats):
-            # job-boards.greenhouse.io/<board>/jobs/<id>, .../embed/job_app?for=<board>, jobs.ashbyhq.com/<org>/<id>
-            board = parse_qs(parts.query).get("for", [parts.path.strip("/").split("/")[0]])[0].lower()
-            return None if board in ("", "embed") else f"{ats}/{board}"
-
-    return host or None
+    return (urlparse(url).hostname or "").removeprefix("www.") or None
