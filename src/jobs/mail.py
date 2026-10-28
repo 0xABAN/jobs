@@ -29,22 +29,18 @@ import subprocess
 import time
 import urllib.error
 import urllib.parse
-import urllib.request
 import webbrowser
 from dataclasses import dataclass
 from pathlib import Path
 
+from jobs import google
 from jobs.config import REPO_ROOT, STATE_DIR
-from jobs.google import TOKEN_URL, access_token, client
 from jobs.lock import locked
 from jobs.sheets import Sheet
 
 TOKEN = REPO_ROOT / ".mcp/gmail-cleanup-token.json"
 SCOPE = "https://www.googleapis.com/auth/gmail.modify"
 API = "https://gmail.googleapis.com/gmail/v1/users/me"
-
-# Gmail's per-user quota resets each minute; these waits span more than one.
-RETRY_WAITS = [2, 4, 8, 16, 32]
 
 # Mail younger than this stays: a running agent reads its code or receipt within a few minutes.
 GRACE_MINUTES = 15
@@ -235,7 +231,7 @@ def authorize(email: str) -> None:
     server = http.server.HTTPServer(("127.0.0.1", 0), Callback)
     redirect = f"http://127.0.0.1:{server.server_port}"
     url = "https://accounts.google.com/o/oauth2/v2/auth?" + urllib.parse.urlencode({
-        "client_id": client()["client_id"], "redirect_uri": redirect, "response_type": "code", "scope": SCOPE,
+        "client_id": google.client()["client_id"], "redirect_uri": redirect, "response_type": "code", "scope": SCOPE,
         "access_type": "offline", "prompt": "consent", "login_hint": email, "state": state,
         "code_challenge": challenge, "code_challenge_method": "S256",
     })
@@ -248,12 +244,8 @@ def authorize(email: str) -> None:
     if reply.get("state") != [state] or "code" not in reply:
         raise RuntimeError(f"Google did not grant access: {reply.get('error', reply)}")
 
-    form = urllib.parse.urlencode({
-        "client_id": client()["client_id"], "client_secret": client()["client_secret"], "code": reply["code"][0],
-        "code_verifier": verifier, "grant_type": "authorization_code", "redirect_uri": redirect,
-    }).encode()
-    with urllib.request.urlopen(TOKEN_URL, form, timeout=30) as response:
-        grant = json.load(response)
+    grant = google.token_request(code=reply["code"][0], code_verifier=verifier, grant_type="authorization_code",
+                                 redirect_uri=redirect)
     if SCOPE not in grant.get("scope", "").split():
         raise RuntimeError(f"Google granted {grant.get('scope')!r}, not {SCOPE}")
 
@@ -303,15 +295,7 @@ def _call(method: str, path: str) -> dict:
 
     Trashing a message twice is harmless, so writes are retried too.
     """
-    for wait in [*RETRY_WAITS, None]:
-        request = urllib.request.Request(API + path, method=method, data=b"" if method == "POST" else None,
-                                         headers={"Authorization": f"Bearer {access_token(TOKEN)}"})
-        try:
-            with urllib.request.urlopen(request, timeout=30) as response:
-                return json.load(response)
-        except urllib.error.HTTPError as error:
-            throttled = error.code == 429 or (error.code == 403 and re.search(r"(?i)quota|rate ?limit", error.read().decode()))
-            if not throttled or wait is None:
-                raise
+    def throttled(error: urllib.error.HTTPError) -> bool:
+        return error.code == 429 or (error.code == 403 and bool(re.search(r"(?i)quota|rate ?limit", error.read().decode())))
 
-            time.sleep(wait)
+    return google.call(API + path, TOKEN, method=method, retryable=throttled)

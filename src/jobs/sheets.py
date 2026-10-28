@@ -4,21 +4,13 @@ Callers never depend on column order: that lives in the Sheet. Credentials are t
 Sheets MCP server's: the Desktop OAuth client and its refresh token in ``.mcp/``.
 """
 
-import json
-import time
 import urllib.error
 import urllib.parse
-import urllib.request
 
+from jobs import google
 from jobs.config import REPO_ROOT
-from jobs.google import access_token
 
 TOKEN = REPO_ROOT / ".mcp/google-sheets-token.json"
-
-# Sheets allows about 60 reads a minute per user, and 20 workers starting at once exceed it.
-# Throttled calls (429) were not carried out, so they are retried after these waits, which span
-# a full minute. Server errors are retried only for reads: a write may have gone through.
-RETRY_WAITS = [2, 4, 8, 16, 32]
 
 
 class Sheet:
@@ -56,27 +48,16 @@ class Sheet:
         return ["" if row.get(column) is None else row[column] for column in header]
 
     def _call(self, method: str, path: str, body: dict | None = None) -> dict:
-        for wait in [*RETRY_WAITS, None]:
-            request = urllib.request.Request(
-                self.url + path,
-                method=method,
-                data=json.dumps(body).encode() if body else None,
-                headers={"Authorization": f"Bearer {_access_token()}", "Content-Type": "application/json"},
-            )
-            try:
-                with urllib.request.urlopen(request, timeout=30) as response:
-                    return json.load(response)
-            except urllib.error.HTTPError as error:
-                retryable = error.code == 429 or (method == "GET" and error.code in (500, 502, 503))
-                if not retryable or wait is None:
-                    raise
+        """Call the Sheets API, retrying throttled calls (429) and failed reads.
 
-                time.sleep(int(error.headers.get("Retry-After") or wait))
+        Sheets allows about 60 reads a minute per user, and many workers starting at once exceed it.
+        Server errors are retried only for reads: a write may have gone through.
+        """
+        def retryable(error: urllib.error.HTTPError) -> bool:
+            return error.code == 429 or (method == "GET" and error.code in (500, 502, 503))
+
+        return google.call(self.url + path, TOKEN, method=method, body=body, retryable=retryable)
 
 
 def _range(a1: str) -> str:
     return urllib.parse.quote(a1, safe="")
-
-
-def _access_token() -> str:
-    return access_token(TOKEN)

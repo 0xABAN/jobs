@@ -90,7 +90,7 @@ def test_gmail_calls_wait_out_the_per_minute_quota(monkeypatch):
     import io
     import urllib.error
 
-    from jobs import mail
+    from jobs import google, mail
 
     replies = [(403, b'{"error": {"message": "Quota exceeded for quota metric"}}'), (429, b"{}"), b'{"id": "m1"}']
     waits = []
@@ -101,9 +101,9 @@ def test_gmail_calls_wait_out_the_per_minute_quota(monkeypatch):
             raise urllib.error.HTTPError(request.full_url, reply[0], "busy", {}, io.BytesIO(reply[1]))
         return io.BytesIO(reply)
 
-    monkeypatch.setattr(mail.urllib.request, "urlopen", urlopen)
-    monkeypatch.setattr(mail, "access_token", lambda path: "token")
-    monkeypatch.setattr(mail.time, "sleep", waits.append)
+    monkeypatch.setattr(google.urllib.request, "urlopen", urlopen)
+    monkeypatch.setattr(google, "access_token", lambda path: "token")
+    monkeypatch.setattr(google.time, "sleep", waits.append)
 
     assert mail._call("GET", "/messages/m1") == {"id": "m1"}
     assert waits == [2, 4]
