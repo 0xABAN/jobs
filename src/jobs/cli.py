@@ -14,7 +14,7 @@ from jobs.apply.workers import running
 from jobs.captcha import solve
 from jobs.chrome import launch
 from jobs.config import CHROME_PROFILE, load_profile
-from jobs.mail import GRACE_MINUTES, authorize, clean_confirmations, clean_now_and_then, schedule
+from jobs.mail import CLEANUP_LOG, GRACE_MINUTES, authorize, clean_confirmations, clean_now_and_then, schedule
 
 
 def main() -> None:
@@ -64,7 +64,7 @@ def main() -> None:
                 result = {"status": "error", "explanation": repr(error)}
 
             print(json.dumps({"url": url, **result}), flush=True)
-            clean_mail_after(grace_minutes=GRACE_MINUTES)
+            clean_mail_after()
             return result["status"]
 
         with ThreadPoolExecutor(args.workers) as pool:
@@ -102,16 +102,16 @@ def main() -> None:
 
     if args.command == "mail-schedule":
         schedule(args.every)
-        print(f"clean-mail now runs every {args.every} minutes; its log is ~/.jobs/mail-cleanup.log")
+        print(f"clean-mail now runs every {args.every} minutes; its log is {CLEANUP_LOG}")
 
     if args.command == "timeline":
         print(timeline(RUNS_DIR / args.run if args.run else max(RUNS_DIR.iterdir())))
 
 
-def clean_mail_after(*, grace_minutes: float) -> None:
+def clean_mail_after() -> None:
     """Trash finished runs' receipts and codes now and then; report on stderr, so stdout keeps one line per job."""
     try:
-        trashed = clean_now_and_then(load_profile()["tracker"]["sheet_id"], grace_minutes=grace_minutes)
+        trashed = clean_now_and_then(load_profile()["tracker"]["sheet_id"])
     except Exception as error:  # the jobs went through either way; say so and keep applying
         print(json.dumps({"mail_cleanup": "error", "explanation": repr(error)}), file=sys.stderr, flush=True)
         return

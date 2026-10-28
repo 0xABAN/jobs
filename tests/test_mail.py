@@ -122,11 +122,11 @@ def test_apply_cleans_at_most_every_ten_minutes(tmp_path, monkeypatch):
     monkeypatch.setattr(mail, "CLEANED_STAMP", tmp_path / "mail-cleaned")
     monkeypatch.setattr(mail, "clean_confirmations", lambda sheet_id, grace_minutes: calls.append(grace_minutes) or ["m"])
 
-    assert mail.clean_now_and_then("sheet", grace_minutes=60) == ["m"]
-    assert mail.clean_now_and_then("sheet", grace_minutes=60) is None  # cleaned a moment ago
+    assert mail.clean_now_and_then("sheet") == ["m"]
+    assert mail.clean_now_and_then("sheet") is None  # cleaned a moment ago
 
     old = (tmp_path / "mail-cleaned").stat().st_mtime - 11 * 60
     import os
     os.utime(tmp_path / "mail-cleaned", (old, old))
-    assert mail.clean_now_and_then("sheet", grace_minutes=60) == ["m"]
-    assert calls == [60, 60]
+    assert mail.clean_now_and_then("sheet") == ["m"]
+    assert calls == [mail.GRACE_MINUTES] * 2

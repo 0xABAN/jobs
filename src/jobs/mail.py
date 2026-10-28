@@ -50,6 +50,7 @@ CLEAN_EVERY_MINUTES = 10
 CLEANED_STAMP = STATE_DIR / "mail-cleaned"
 SCHEDULE_LABEL = "dev.jobs.clean-mail"
 SCHEDULE_PLIST = Path.home() / f"Library/LaunchAgents/{SCHEDULE_LABEL}.plist"
+CLEANUP_LOG = STATE_DIR / "mail-cleanup.log"
 
 # Narrows the search to candidates; ``classify`` decides.
 SEARCH = ('-in:trash -is:starred (subject:(application OR applying OR applied OR resume OR "security code" OR verify '
@@ -83,12 +84,12 @@ DECISION = re.compile(
 HEDGED = re.compile(r"^\W*if\b|\bif (you|we|your|there|it)\b|\b(may|might) (receive|be (contacted|asked|invited)|not hear|hear)",
                     re.I)
 
-AUTOMATED_SENDER = re.compile(
-    r"no-?reply|do-?not-?reply|donotreply|notifications?@|greenhouse-mail\.io|ashbyhq\.com|myworkday(jobs)?\.com"
-    r"|workday\.com|eightfold\.ai|workablemail\.com|icims\.com|smartrecruiters|successfactors|oraclecloud\.com"
-    r"|jobvite|gem\.com|recruiting|careers|talent|hiring|campus|university|early-?careers|jobs@|apply@", re.I)
+# Applicant tracking systems' mail, and automated senders in general.
 ATS_SENDER = re.compile(r"greenhouse-mail\.io|ashbyhq\.com|workday\.com|eightfold\.ai|workablemail\.com|icims\.com"
                         r"|smartrecruiters|successfactors|oraclecloud\.com|jobvite|gem\.com", re.I)
+AUTOMATED_SENDER = re.compile(
+    ATS_SENDER.pattern + r"|myworkdayjobs\.com|no-?reply|do-?not-?reply|donotreply|notifications?@"
+    r"|recruiting|careers|talent|hiring|campus|university|early-?careers|jobs@|apply@", re.I)
 
 # Words dropped from tracker company names before matching, so "The D. E. Shaw Group" matches "deshaw".
 COMPANY_FILLER = re.compile(r"\b(the|inc|incorporated|group|technologies|technology|industries|labs|systems|corporation"
@@ -165,7 +166,7 @@ def clean_confirmations(sheet_id: str, *, grace_minutes: float, days: int = 2, d
     return trashed
 
 
-def clean_now_and_then(sheet_id: str, *, grace_minutes: float) -> list[dict] | None:
+def clean_now_and_then(sheet_id: str) -> list[dict] | None:
     """Run ``clean_confirmations`` unless another process is at it or one ran in the last ``CLEAN_EVERY_MINUTES``.
 
     Returns what was trashed, or ``None`` when it did not run.
@@ -176,7 +177,7 @@ def clean_now_and_then(sheet_id: str, *, grace_minutes: float) -> list[dict] | N
         if CLEANED_STAMP.exists() and time.time() - CLEANED_STAMP.stat().st_mtime < CLEAN_EVERY_MINUTES * 60:
             return None
 
-        trashed = clean_confirmations(sheet_id, grace_minutes=grace_minutes)
+        trashed = clean_confirmations(sheet_id, grace_minutes=GRACE_MINUTES)
         CLEANED_STAMP.touch()
         return trashed
 
@@ -184,10 +185,10 @@ def clean_now_and_then(sheet_id: str, *, grace_minutes: float) -> list[dict] | N
 def schedule(every_minutes: int = 15) -> None:
     """Have launchd run ``jobs clean-mail`` every ``every_minutes`` minutes, so mail is cleaned between apply runs too.
 
-    Its output goes to ``~/.jobs/mail-cleanup.log``. ``launchctl bootout gui/$UID/dev.jobs.clean-mail``
+    Its output goes to ``CLEANUP_LOG``. ``launchctl bootout gui/$UID/dev.jobs.clean-mail``
     and deleting ``SCHEDULE_PLIST`` stop it.
     """
-    log = str(STATE_DIR / "mail-cleanup.log")
+    log = str(CLEANUP_LOG)
     SCHEDULE_PLIST.write_bytes(plistlib.dumps({
         "Label": SCHEDULE_LABEL,
         "ProgramArguments": [shutil.which("uv"), "run", "--project", str(REPO_ROOT), "jobs", "clean-mail"],
