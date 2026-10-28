@@ -58,7 +58,16 @@
     "sat": "",
     "act": "",
     "gre": "",
-    "graduate_gpa": ""
+    "graduate_gpa": "",
+    "graduate_school": {
+      "school": "",
+      "school_dropdown_names": [],
+      "degree": "",
+      "major": "",
+      "start": "",
+      "expected_graduation": "",
+      "admitted": ""
+    }
   },
   "preferences": {
     "work_arrangement_order": ["Remote", "Hybrid", "Onsite"],
