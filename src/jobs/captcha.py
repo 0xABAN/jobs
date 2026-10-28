@@ -1,7 +1,7 @@
 """Solve the CAPTCHA blocking a page in a harness Chrome, through CapSolver.
 
-The apply agent runs ``jobs captcha <port>`` when a CAPTCHA stops it. Its CUA tools cannot run
-page JavaScript, so this module reaches the page through the Chrome DevTools Protocol on
+The apply agent runs ``jobs captcha <port>`` when a CAPTCHA stops it. Its browser tools cannot run
+page JavaScript (see ``pi.EXCLUDED_TOOLS``), so this module reaches the page through the Chrome DevTools Protocol on
 ``port``: it finds the CAPTCHA, has CapSolver solve it, and puts the token where the CAPTCHA's
 widget would, then calls the page's callbacks as the widget does.
 """
@@ -12,8 +12,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-from websockets.sync.client import connect
-
+from jobs.chrome import cdp
 from jobs.config import env
 
 CAPSOLVER = "https://api.capsolver.com"
@@ -107,11 +106,7 @@ def _targets(port: int) -> list[dict]:
 
 def _evaluate(target: dict, expression: str):
     """Evaluate ``expression`` in ``target`` and return its JSON value."""
-    request = {"id": 1, "method": "Runtime.evaluate", "params": {"expression": expression, "returnByValue": True}}
-    with connect(target["webSocketDebuggerUrl"], max_size=None) as socket:
-        socket.send(json.dumps(request))
-        while (reply := json.loads(socket.recv(timeout=30))).get("id") != 1:
-            pass  # an event, not our reply
+    reply = cdp(target["webSocketDebuggerUrl"], "Runtime.evaluate", {"expression": expression, "returnByValue": True})
 
     if "exceptionDetails" in reply["result"]:
         raise RuntimeError(f"Page script failed: {reply['result']['exceptionDetails']['text']}")

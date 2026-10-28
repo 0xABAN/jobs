@@ -1,8 +1,9 @@
-"""Run the Chrome that an apply agent drives through CUA.
+"""Run the harness's background Chrome: each apply agent's, and the ``jobs`` profile for ``jobs browse``.
 
 The harness launches Chrome itself, as ApplyPilot does, so it chooses the
-flags: CUA's own launch leaves Chrome throttling hidden windows. CUA then
-attaches to this process, which its ``--grant existing-profile`` allows.
+flags: CUA's own launch leaves Chrome throttling hidden windows. An apply
+agent's Playwright attaches over the DevTools port, and CUA attaches to a
+``jobs browse`` Chrome by its pid, which its ``--grant existing-profile`` allows.
 """
 
 import json
@@ -17,7 +18,7 @@ from pathlib import Path
 from websockets.sync.client import connect
 
 FLAGS = [
-    "--remote-debugging-port=0",  # any free port; CUA finds it from the pid
+    "--remote-debugging-port=0",  # any free port, which Chrome writes to DevToolsActivePort
     "--no-first-run",
     "--no-default-browser-check",
     "--disable-extensions",
@@ -69,10 +70,10 @@ def launch(profile: Path, url: str) -> int:
          *FLAGS],
         check=True,
     )
-    if not _wait(lambda: (profile / "DevToolsActivePort").exists() and _owner(profile), seconds=30):
+    pid = _wait(lambda: (profile / "DevToolsActivePort").exists() and _owner(profile), seconds=30)
+    if not pid:
         raise RuntimeError(f"Chrome did not start on {profile}")
 
-    pid = _owner(profile)
     try:
         _open_background_window(profile, url)
     except BaseException:
@@ -85,6 +86,16 @@ def launch(profile: Path, url: str) -> int:
 def devtools_port(profile: Path) -> int:
     """Return the DevTools port of the Chrome running on ``profile``; Chrome picked it at launch."""
     return int((profile / "DevToolsActivePort").read_text().split()[0])
+
+
+def cdp(endpoint: str, method: str, params: dict) -> dict:
+    """Send one DevTools Protocol command over the WebSocket ``endpoint`` and return Chrome's reply."""
+    with connect(endpoint, max_size=None) as socket:
+        socket.send(json.dumps({"id": 1, "method": method, "params": params}))
+        while (reply := json.loads(socket.recv(timeout=30))).get("id") != 1:
+            pass  # an event, not our reply
+
+    return reply
 
 
 def close(pid: int) -> None:
@@ -108,12 +119,7 @@ def _open_background_window(profile: Path, url: str) -> None:
     Uses the browser's DevTools endpoint, which Chrome names in ``DevToolsActivePort``'s second line.
     """
     port, path = (profile / "DevToolsActivePort").read_text().split()[:2]
-    request = {"id": 1, "method": "Target.createTarget", "params": {"url": url, "newWindow": True, "background": True}}
-
-    with connect(f"ws://127.0.0.1:{port}{path}", max_size=None) as socket:
-        socket.send(json.dumps(request))
-        while (reply := json.loads(socket.recv(timeout=30))).get("id") != 1:
-            pass  # an event, not our reply
+    reply = cdp(f"ws://127.0.0.1:{port}{path}", "Target.createTarget", {"url": url, "newWindow": True, "background": True})
 
     if "error" in reply:
         raise RuntimeError(f"Chrome could not open {url}: {reply['error']['message']}")
@@ -127,11 +133,11 @@ def _alive(pid: int) -> bool:
     return True
 
 
-def _wait(condition, *, seconds: float) -> bool:
-    """Poll ``condition`` until it holds or ``seconds`` pass; return whether it held."""
+def _wait(condition, *, seconds: float):
+    """Poll ``condition`` until it returns a true value or ``seconds`` pass; return that value, or ``None``."""
     deadline = time.monotonic() + seconds
-    while not condition():
+    while not (value := condition()):
         if time.monotonic() > deadline:
-            return False
+            return None
         time.sleep(0.25)
-    return True
+    return value
