@@ -5,10 +5,26 @@ import pytest
 from jobs.apply import workers
 
 
-def test_each_url_runs_on_one_worker_at_a_time(tmp_path, monkeypatch):
+@pytest.fixture
+def workers_dir(tmp_path, monkeypatch):
+    """Keep workers in ``tmp_path`` and claim them without copying a Chrome profile."""
     monkeypatch.setattr(workers, "WORKERS_DIR", tmp_path)
     monkeypatch.setattr(workers, "_prepare", lambda directory: None)
 
+
+class Waited(Exception):
+    """Raised where a claim would sleep before trying the workers again."""
+
+
+@pytest.fixture
+def no_waiting(monkeypatch):
+    def sleep(seconds):
+        raise Waited
+
+    monkeypatch.setattr(workers.time, "sleep", sleep)
+
+
+def test_each_url_runs_on_one_worker_at_a_time(workers_dir):
     with workers.worker("https://a", 2) as first:
         with workers.worker("https://a", 2) as duplicate:
             assert duplicate is None
@@ -30,18 +46,7 @@ def test_each_url_runs_on_one_worker_at_a_time(tmp_path, monkeypatch):
             assert duplicate is None
 
 
-def test_a_run_can_wait_for_another_run_of_its_url(tmp_path, monkeypatch):
-    monkeypatch.setattr(workers, "WORKERS_DIR", tmp_path)
-    monkeypatch.setattr(workers, "_prepare", lambda directory: None)
-
-    class Waited(Exception):
-        pass
-
-    def sleep(seconds):
-        raise Waited
-
-    monkeypatch.setattr(workers.time, "sleep", sleep)
-
+def test_a_run_can_wait_for_another_run_of_its_url(workers_dir, no_waiting):
     with workers.worker("https://a", 1):
         # Worker 1 is free, but worker 0 has the URL, so the claim waits instead of yielding None.
         with pytest.raises(Waited):
@@ -49,18 +54,7 @@ def test_a_run_can_wait_for_another_run_of_its_url(tmp_path, monkeypatch):
                 pass
 
 
-def test_greenhouse_runs_at_one_employer_wait_for_each_other(tmp_path, monkeypatch):
-    monkeypatch.setattr(workers, "WORKERS_DIR", tmp_path)
-    monkeypatch.setattr(workers, "_prepare", lambda directory: None)
-
-    class Waited(Exception):
-        pass
-
-    def sleep(seconds):
-        raise Waited
-
-    monkeypatch.setattr(workers.time, "sleep", sleep)
-
+def test_greenhouse_runs_at_one_employer_wait_for_each_other(workers_dir, no_waiting):
     with workers.worker("https://job-boards.greenhouse.io/tower/jobs/1", 3):
         # Another employer's Greenhouse job, and another site's job, run alongside.
         with workers.worker("https://job-boards.greenhouse.io/drweng/jobs/2", 3) as other:
