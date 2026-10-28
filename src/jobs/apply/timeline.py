@@ -32,6 +32,20 @@ class Turn:
     end: float | None = None
     calls: list[Call] = field(default_factory=list)
 
+    # Seconds of the model call and its parts (waiting, thinking, writing), once its message has ended.
+
+    @property
+    def model(self) -> float:
+        return self.model_end - self.start
+
+    @property
+    def wait(self) -> float:  # for the first token
+        return (self.first_token or self.model_end) - self.start
+
+    @property
+    def write(self) -> float:  # the reply and its tool calls
+        return self.model - self.wait - self.thinking
+
 
 def read_turns(transcript: Path) -> tuple[list[Turn], float]:
     """Return the agent's turns and the time of the transcript's last event, in seconds since Pi launched."""
@@ -99,10 +113,7 @@ def _model(turn: Turn) -> str:
     if turn.model_end is None:
         return f"{'running':>40}"
 
-    model = turn.model_end - turn.start
-    wait = (turn.first_token or turn.model_end) - turn.start
-    write = model - wait - turn.thinking
-    return f"{model:>6.1f} ({wait:>6.1f} {turn.thinking:>6.1f} {write:>6.1f}) {turn.output_tokens:>6}"
+    return f"{turn.model:>6.1f} ({turn.wait:>6.1f} {turn.thinking:>6.1f} {turn.write:>6.1f}) {turn.output_tokens:>6}"
 
 
 def _tools(turn: Turn) -> str:
@@ -123,8 +134,8 @@ def _tools(turn: Turn) -> str:
 
 def _totals(turns: list[Turn], elapsed: float) -> list[str]:
     finished = [turn for turn in turns if turn.model_end is not None]
-    model = sum(turn.model_end - turn.start for turn in finished)
-    wait = sum((turn.first_token or turn.model_end) - turn.start for turn in finished)
+    model = sum(turn.model for turn in finished)
+    wait = sum(turn.wait for turn in finished)
     thinking = sum(turn.thinking for turn in finished)
     tools = sum(turn.end - turn.model_end for turn in finished if turn.end is not None)
     startup = turns[0].start if turns else elapsed
