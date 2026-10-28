@@ -11,7 +11,7 @@ This checkout is set up for its author, Adam. To use it yourself, follow [Setup]
 - Pi: `npm install -g @earendil-works/pi-coding-agent`.
 - `pdftotext`, for reading resumes: `brew install poppler`.
 - A Google account for Gmail and the tracker Sheet.
-- Optional: a [CapSolver](https://www.capsolver.com/) key for CAPTCHAs, and cua-driver if an orchestrating Pi session should browse job boards.
+- Optional: a [CapSolver](https://www.capsolver.com/) key for CAPTCHAs.
 
 ## Setup
 
