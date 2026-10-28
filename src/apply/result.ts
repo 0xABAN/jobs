@@ -1,48 +1,48 @@
-/** How an application ended: the JSON result an apply agent reports, validated. */
+export type Status = "applied" | "dry_run" | "failed" | "skipped";
 
-/** How one application ended; `prompt.md` defines the values the agent reports. */
 export type Result = {
-  status: "applied" | "dry_run" | "failed" | "skipped";  // "skipped": the agent never ran
-  reason: string | null;  // why it failed or was skipped; null otherwise
+  status: Status;
+  reason: string | null;
   explanation: string;
   company: string | null;
   role: string | null;
-  salary: string | null;  // the posted pay range, as written
-  account: string | null;  // the host of the site whose account the agent used, such as a Workday tenant
+  salary: string | null;
+  account: string | null;
 };
 
-const FIELDS = ["status", "reason", "explanation", "company", "role", "salary", "account"] as const;
-const REQUIRED = ["status", "reason", "explanation"];
+type Details = Partial<Pick<Result, "company" | "role" | "salary" | "account">>;
 
-/** Build a result, leaving the details the agent did not report empty. */
-export function result(status: Result["status"], reason: string | null, explanation: string,
-  details: Partial<Pick<Result, "company" | "role" | "salary" | "account">> = {}): Result {
+const FIELDS = new Set(["status", "reason", "explanation", "company", "role", "salary", "account"]);
+const REQUIRED_FIELDS = ["status", "reason", "explanation"];
+const RESULT_BLOCK = /```json\s*([\s\S]*?)```/g;
+const QUOTED_TAIL = 300;
+
+export function result(status: Status, reason: string | null, explanation: string, details: Details = {}): Result {
   return { status, reason, explanation, company: null, role: null, salary: null, account: null, ...details };
 }
 
-// The last ```json block of the agent's final message holds its result.
-const RESULT_BLOCK = /```json\s*([\s\S]*?)```/g;
-
-/** Return the result the agent ended with, or a `no_result` failure when it is missing or malformed. */
 export function parseResult(finalMessage: string): Result {
-  const blocks = [...finalMessage.matchAll(RESULT_BLOCK)];
-  const reported = blocks.length ? parseObject(blocks.at(-1)![1]) : null;
+  const lastBlock = [...finalMessage.matchAll(RESULT_BLOCK)].at(-1);
+  const reported = lastBlock ? parseObject(lastBlock[1]) : null;
 
-  // Exactly the fields of a Result, with at least the required ones.
-  const wellFormed = reported !== null
-    && Object.keys(reported).every((key) => (FIELDS as readonly string[]).includes(key))
-    && REQUIRED.every((key) => key in reported);
-
-  if (wellFormed) {
+  if (reported && hasExactlyResultFields(reported)) {
     const candidate = { ...result("failed", null, ""), ...reported } as Result;
-    const succeeded = (candidate.status === "applied" || candidate.status === "dry_run") && candidate.reason === null;
-    const failed = candidate.status === "failed" && typeof candidate.reason === "string" && candidate.reason !== "";
-    if (succeeded || failed) {
+    if (isFinished(candidate)) {
       return candidate;
     }
   }
 
-  return result("failed", "no_result", `The agent ended without a valid result: ${JSON.stringify(finalMessage.slice(-300))}`);
+  return result("failed", "no_result", `The agent ended without a valid result: ${JSON.stringify(finalMessage.slice(-QUOTED_TAIL))}`);
+}
+
+function hasExactlyResultFields(reported: Record<string, unknown>): boolean {
+  return Object.keys(reported).every((key) => FIELDS.has(key)) && REQUIRED_FIELDS.every((key) => key in reported);
+}
+
+function isFinished(candidate: Result): boolean {
+  const succeeded = (candidate.status === "applied" || candidate.status === "dry_run") && candidate.reason === null;
+  const failed = candidate.status === "failed" && typeof candidate.reason === "string" && candidate.reason !== "";
+  return succeeded || failed;
 }
 
 function parseObject(text: string): Record<string, unknown> | null {

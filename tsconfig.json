@@ -1,5 +1,4 @@
 {
-  // Type checking only: Node runs the .ts files as they are, by stripping their types.
   "compilerOptions": {
     "target": "es2023",
     "module": "nodenext",

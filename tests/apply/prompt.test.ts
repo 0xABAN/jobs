@@ -3,16 +3,16 @@ import { join } from "node:path";
 import { test } from "node:test";
 
 import { renderPrompt } from "../../src/apply/prompt.ts";
-import { loadProfile, REPO_ROOT } from "../../src/config.ts";
-import type { Application } from "../../src/tracker.ts";
+import { loadProfile, REPO_ROOT } from "../../src/shared/config.ts";
+import type { Application } from "../../src/tracker/tracker.ts";
 
 const URL = "https://job-boards.greenhouse.io/example/jobs/1";
 
-function render({ dryRun = false, earlierApplications = [] as Application[], capsolverKey = "CAP-test" as string | null } = {}) {
-  return renderPrompt(URL, {
-    dryRun, profile: loadProfile(join(REPO_ROOT, "profile.example.json")), today: new Date(2026, 9, 4), chromePid: 4242,
-    capsolverKey, earlierApplications,
-  });
+type RenderOptions = { dryRun?: boolean; earlierApplications?: Application[]; capsolverKey?: string | null };
+
+function render({ dryRun = false, earlierApplications = [], capsolverKey = "CAP-test" }: RenderOptions = {}): string {
+  const profile = loadProfile(join(REPO_ROOT, "profile.example.json"));
+  return renderPrompt(URL, { dryRun, profile, today: new Date(2026, 9, 4), chromePid: 4242, capsolverKey, earlierApplications });
 }
 
 test("fills every placeholder", () => {
@@ -24,14 +24,14 @@ test("fills every placeholder", () => {
   assert.ok(prompt.includes(`relative to \`${REPO_ROOT}\``));
   assert.ok(prompt.includes("pid `4242`"));
   assert.ok(prompt.includes("today's date, 10/04/2026"));
-  assert.ok(!prompt.includes('"tracker"'));  // the launcher keeps the tracker
+  assert.ok(!prompt.includes('"tracker"'));
 });
 
 test("agents call CapSolver with the key", () => {
   const prompt = render();
 
   assert.ok(prompt.includes("**API key:** `CAP-test`"));
-  assert.equal(prompt.split('"clientKey": "CAP-test"').length - 1, 2);  // createTask and getTaskResult
+  assert.equal(prompt.split('"clientKey": "CAP-test"').length - 1, 2);
 });
 
 test("without a key, agents solve CAPTCHAs by hand", () => {
@@ -53,8 +53,8 @@ test("a dry run never enters a security code", () => {
 
 test("lists earlier applications only when the tracker has some", () => {
   const prompt = render({ earlierApplications: [{ company: "IMC", role: "Graduate Software Engineer", applied: "2026-09-07" }] });
-  assert.ok(prompt.includes("  - IMC: Graduate Software Engineer (2026-09-07)"));
 
+  assert.ok(prompt.includes("  - IMC: Graduate Software Engineer (2026-09-07)"));
   assert.ok(!render().includes("earlier applications to this employer**"));
 });
 

@@ -28,8 +28,8 @@ test("uses the last json block", () => {
 
 for (const [message, why] of [
   ["I applied.", "no block"],
-  ["```json\n{not json}\n```", "not JSON"],
-  ["```json\n[1, 2]\n```", "not an object"],
+  ["```json\n{not json}\n```", "no JSON"],
+  ["```json\n[1, 2]\n```", "no object"],
   [block({ status: "applied", reason: null }), "a missing field"],
   [block({ status: "applied", reason: null, explanation: "x", extra: 1 }), "an unknown field"],
   [block({ status: "done", reason: null, explanation: "x" }), "an unknown status"],
