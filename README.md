@@ -65,8 +65,6 @@ Then try `./jobs apply --dry-run <posting url>` followed by `./jobs timeline`.
 
 `./jobs --help` lists every option. To run in the background, use `nohup ./jobs apply <url> ... >> ~/.jobs/apply.log 2>&1 &`. Running `apply` again retries failures, except those that settle a job (`FINAL_REASONS` in `src/tracker/tracker.ts`). Each run keeps its prompt, transcript, and `result.json` in `~/.jobs/runs/<run id>/`, and everything but `result.json` is deleted after 3 hours.
 
-To hand the whole job to Pi, start `pi` here and ask it, for example, to "apply to all internships via jobright". It follows `AGENTS.md`.
-
 ## How it works
 
 Each URL claims one of the shared workers in `~/.jobs/workers/<n>/`, unless the tracker already settles it or another worker has it. The worker's Chrome opens the posting in a background window, and Pi runs `src/apply/prompt.md` with two MCP servers: read-only Gmail for codes and links, and `@playwright/mcp` on Chrome's DevTools port. Agents solve CAPTCHAs with CapSolver, as ApplyPilot's agents do. Lever is banned because its hCaptcha can't be solved. Live results go to `Apps` or `Failed`, and accounts agents used go to `Logins`.
@@ -79,7 +77,7 @@ Each URL claims one of the shared workers in `~/.jobs/workers/<n>/`, unless the 
 | `src/apply/prompt.md` | The agent's rules, which name Adam and his degrees. Keep the Result section and the `${name}` placeholders, and write `$$` for a dollar sign. |
 | `src/shared/config.ts` | `paths.chromeProfile`, `BANNED_SITES`, and `SESSION_WORKERS`, the workers kept for sites Adam signed in to by hand. Empty the last one. |
 | `src/agent/settings.ts` | The agents' model, extensions, skills, and blocked tools. |
-| `AGENTS.md` | What an orchestrating Pi session looks for. |
+| `AGENTS.md` | How an agent working in this checkout uses the harness. |
 
 ## Development
 

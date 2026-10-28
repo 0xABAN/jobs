@@ -1,24 +1,26 @@
-You are Adam's job-application orchestrator. Adam graduates from Pennsylvania State University in December 2026 and wants a new-grad role. If he doesn't land one, he continues into Cornell's Computer Science M.Eng. (graduating May 2028), so apply to both new-grad roles and internships.
+This repo applies to jobs from their posting URLs. Use it through `./jobs`; `./jobs --help` lists every command and option. Finding postings is not part of this repo.
 
-When Adam asks you to apply to jobs (for example "apply to all internships via jobright"):
+## Applying
 
-1. Open the board in Adam's `jobs` Chrome profile, which holds his logins: `./jobs browse <board url>` prints its pid. Drive it with the cua-driver tools as the Browser section of `src/apply/prompt.md` describes, attaching by that pid, and `kill <pid>` when you are done. Boards:
-   - https://jobright.ai/jobs/recommend
-   - https://app.joinhandshake.com/home
-   - https://www.linkedin.com/jobs/
+- Start applications in the background and keep working: `nohup ./jobs apply <url> <url> ... >> ~/.jobs/apply.log 2>&1 &`. Up to 6 run at once (`--workers`), each on a worker of its own in `~/.jobs/workers/<n>/`, and extra URLs wait for a free one. `--dry-run` never submits, but still signs in and creates accounts.
+- Each job is first checked against the tracker Sheet. A headless agent then applies, and the result goes to the `Apps` tab on success or `Failed` otherwise. `Logins` lists the sites where agents used or created an account. `~/.jobs/apply.log` gets one JSON line per finished job.
+- `./jobs status` lists what the workers are applying to now, and `./jobs timeline [run id]` shows where a run spent its time. Each run keeps its prompt, transcript, and `result.json` in `~/.jobs/runs/<run id>/`; everything but `result.json` is deleted after 3 hours.
+- To retry failures, run `./jobs apply` again on URLs from `Failed`. Failures that settle a job (`FINAL_REASONS` in `src/tracker/tracker.ts`, such as `not_eligible`) are skipped. Retry `missing_fact` and `login_issue` only after Adam updates `profile.json` or signs in again.
+- Apply only through `./jobs apply`, never in your own browser.
 
-   Start with LinkedIn's job search, where Adam wants sourcing to begin.
-2. Keep only great fits at big tech companies (FAANG included) and startups (Adam, 2026-10-12). A great fit puts his data science, statistics, and AI training and his applied LLM and agent work at the center of the job: ML, AI, and data science roles, and backend or infrastructure software engineering on AI and data products. Startups count when they are established and well funded, unicorns first. Full-time roles must pay at least $150,000 and internships at least $40 an hour, judged by the top of the posted range (Adam, 2026-10-27). Among those, keep new-grad roles and internships of any term (spring, summer, or other) whose qualifications he meets. Drop a posting for a hard miss, the kind the Eligibility section of `prompt.md` lists, such as a required PhD, and drop mere stretches too: hardware, mobile, and roles asking for experience he lacks. Drop companies in `profile.json`'s `excluded_companies` and jobs the tracker's `Apps` tab already lists under the same company and role (read it with the Google Sheets MCP).
-3. Take each job's own application URL, the employer's page behind the board's Apply button. Never LinkedIn Easy Apply, and skip applications hosted on a site in `BANNED_SITES` (`src/shared/config.ts`; today, Lever).
-4. Start them in the background and keep working; never wait for them:
-   `nohup ./jobs apply <url> <url> ... >> ~/.jobs/apply.log 2>&1 &`
-   All runs share 6 workers, and extra jobs wait for a free one. Each job is checked against the tracker, applied by its own headless agent, and recorded in the tracker: `Apps` on success, `Failed` otherwise. `Logins` lists the sites where agents used or created an account for Adam, all with his profile email and password. `~/.jobs/apply.log` gets one JSON line per finished job. Receipts, security codes, and candidate-account emails at least 15 minutes old go to Gmail's Trash (`src/mail/cleanup.ts`), leaving rejections, invitations, assessments, and anything outside the tracker's companies: launchd runs `jobs clean-mail` every 15 minutes (`./jobs mail-schedule` installs it; log in `~/.jobs/mail-cleanup.log`), and `jobs apply` cleans every 10 minutes or so while it runs. `./jobs clean-mail --dry-run` lists what it would trash. That cleanup has its own Gmail token with the modify scope (`./jobs mail-auth` grants it); apply agents keep a read-only one.
-5. `./jobs status` lists what the workers are applying to now. Report results from the log and the tracker.
+## Accounts and mail
 
-To retry failures, run `jobs apply` again on URLs from the `Failed` tab; jobs whose failure settles them (such as `not_eligible` or `unconfirmed`) are skipped. Retry `missing_fact` and `login_issue` only after Adam updates `profile.json`. Never apply in your own browser.
+- `./jobs browse [url]` opens the jobs Chrome profile (`~/.jobs/chrome`), which holds Adam's job-site logins, and prints its pid; `kill` that pid when you are done. Each worker copies this profile on first use.
+- Workers 4 and 5 hold sign-ins Adam made by hand, and `SESSION_WORKERS` in `src/shared/config.ts` routes those sites' jobs to them: Y Combinator (Work at a Startup) on worker 4, and Microsoft Careers with his Gmail on worker 5. Apple's sign-in lapsed, so Adam applies to Apple roles himself. When a session lapses, its runs fail with `login_issue`; ask Adam to sign in again in a Chrome opened on that worker's profile.
+- Mail to `personal.school_email` no longer reaches Gmail, so agents never see codes or reset links sent there. Read that inbox in Outlook web through the jobs profile: `./jobs browse https://outlook.office.com/mail/`.
+- `./jobs clean-mail` trashes application receipts and security codes at least 15 minutes old, and `--dry-run` lists what it would trash. `./jobs mail-schedule` runs it every 15 minutes, and `./jobs apply` also cleans while it runs.
 
-Mail to Adam's school address (`personal.school_email`) has not reached his Gmail since mid-September 2026, so agents never see verification or reset emails sent there, as for his NVIDIA account. Read that inbox yourself in Outlook web, where the jobs Chrome profile is signed in (`./jobs browse https://outlook.office.com/mail/`), for example to reset an employer account's password to `personal.password` before its jobs run.
+## Files
 
-Two sites need Adam's personal accounts, which agents never sign in to, so he signed in once in one worker's Chrome: Y Combinator (ycombinator.com job pages, which apply through Work at a Startup) on worker 4 (2026-10-06), and on worker 5 Apple (jobs.apple.com, 2026-10-05) and Microsoft Careers with his Gmail, the profile's default email (2026-10-21; his October 5-6 Microsoft applications are under art5809@psu.edu). Apple's sign-in lapsed by 2026-10-21 and Adam could not sign in again, so he applies to Apple roles himself. Apple's sign-in is a session cookie; worker Chromes keep session cookies across restarts ("Continue where you left off", set by `prepareWorker` in `src/workers/profile.ts`), so it lasts until Apple expires it. `SESSION_WORKERS` in `src/shared/config.ts` routes those jobs to their worker and keeps other jobs off it, so workers 0-3 take everything else. More workers outrun this Mac's memory and nearly full disk (2026-10-06). If a session lapses, the runs fail with `login_issue`; ask Adam to sign in again in a Chrome opened on that worker's profile.
+- `profile.json` (gitignored; `profile.example.json` shows its shape) holds Adam's answers, and `resumes/` his resumes.
+- `src/apply/prompt.md` is the apply agent's instructions.
+- `src/shared/config.ts` holds the paths, `BANNED_SITES` (sites agents never apply on; today, Lever), and `SESSION_WORKERS`.
 
-Adam's answers live in `profile.json` (gitignored; `profile.example.json` shows its shape), and the apply agent's instructions are `src/apply/prompt.md`. Each run's prompt, transcript, and result are in `~/.jobs/runs/<run id>/`.
+## Development
+
+Run `npm test` and `npm run typecheck`.
