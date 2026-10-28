@@ -16,9 +16,12 @@ from jobs.tracker import Application
 TEMPLATE_PATH = Path(__file__).with_name("prompt.md")
 
 
-def render_prompt(job_url: str, *, dry_run: bool, profile: dict, today: date, chrome_pid: int, devtools_port: int,
-                  earlier_applications: list[Application] = ()) -> str:
+def render_prompt(job_url: str, *, dry_run: bool, profile: dict, today: date, chrome_pid: int,
+                  capsolver_key: str | None, earlier_applications: list[Application] = ()) -> str:
     """Return the complete prompt for applying to one job in the Chrome the launcher opened.
+
+    The agent solves CAPTCHAs with CapSolver itself, as ApplyPilot's agents do, so the prompt
+    carries ``capsolver_key``. Without one, it tells the agent to solve them by hand.
 
     ``earlier_applications`` are Adam's applications to this employer in the tracker, so the agent can
     answer "Have you applied here before?" truthfully. Without any, the prompt says nothing: the
@@ -44,7 +47,8 @@ def render_prompt(job_url: str, *, dry_run: bool, profile: dict, today: date, ch
         today=today.strftime("%m/%d/%Y"),
         repo_root=REPO_ROOT,
         chrome_pid=chrome_pid,
-        devtools_port=devtools_port,
+        capsolver_key=capsolver_key or "",
+        capsolver_key_note=f"`{capsolver_key}`" if capsolver_key else "NOT CONFIGURED: skip to Manual fallback for all CAPTCHAs",
         banned_sites=", ".join(BANNED_SITES),
         earlier_applications=history,
         # The launcher, not the agent, keeps the tracker.

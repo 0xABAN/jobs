@@ -41,11 +41,15 @@ def email_for(profile: dict, company: str | None) -> str:
     return personal["email"]
 
 
-def env(name: str) -> str:
-    """Return a secret from the repo's gitignored ``.env`` file."""
-    for line in (REPO_ROOT / ".env").read_text(encoding="utf-8").splitlines():
+def env(name: str) -> str | None:
+    """Return a secret from the repo's gitignored ``.env`` file, or ``None`` when the file does not set it."""
+    path = REPO_ROOT / ".env"
+    if not path.exists():
+        return None
+
+    for line in path.read_text(encoding="utf-8").splitlines():
         key, _, value = line.partition("=")
         if key.strip() == name:
-            return value.strip()
+            return value.strip() or None
 
-    raise KeyError(f"{name} is not set in .env")
+    return None

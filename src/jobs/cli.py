@@ -11,7 +11,6 @@ from jobs import pi
 from jobs.apply.launcher import RUNS_DIR, apply
 from jobs.apply.timeline import timeline
 from jobs.apply.workers import running
-from jobs.captcha import solve
 from jobs.chrome import launch
 from jobs.config import CHROME_PROFILE, load_profile
 from jobs.mail import CLEANUP_LOG, GRACE_MINUTES, authorize, clean_confirmations, clean_now_and_then, schedule
@@ -34,9 +33,6 @@ def main() -> None:
 
     browse = commands.add_parser("browse", help="open the jobs Chrome profile in the background and print its pid")
     browse.add_argument("url", nargs="?", default="about:blank")
-
-    captcha = commands.add_parser("captcha", help="solve the CAPTCHA blocking a page in a harness Chrome; print JSON")
-    captcha.add_argument("port", type=int, help="that Chrome's DevTools port")
 
     commands.add_parser("mail-auth", help="grant the Gmail cleanup its own token, which can move mail to Trash")
 
@@ -76,11 +72,6 @@ def main() -> None:
 
     if args.command == "browse":
         print(launch(CHROME_PROFILE, args.url))
-
-    if args.command == "captcha":
-        outcome = solve(args.port)
-        print(json.dumps(outcome))
-        sys.exit("error" in outcome)
 
     if args.command == "mail-auth":
         authorize(load_profile()["personal"]["email"])

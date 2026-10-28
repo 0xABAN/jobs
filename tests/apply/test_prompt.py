@@ -7,11 +7,11 @@ from jobs.tracker import Application
 URL = "https://job-boards.greenhouse.io/example/jobs/1"
 
 
-def render(*, dry_run: bool, earlier_applications=()) -> str:
+def render(*, dry_run: bool, earlier_applications=(), capsolver_key="CAP-test") -> str:
     profile = load_profile(REPO_ROOT / "profile.example.json")
     return render_prompt(
         URL, dry_run=dry_run, profile=profile, today=date(2026, 10, 4), chrome_pid=4242,
-        devtools_port=9333, earlier_applications=earlier_applications,
+        capsolver_key=capsolver_key, earlier_applications=earlier_applications,
     )
 
 
@@ -23,7 +23,20 @@ def test_fills_every_placeholder():
     assert '"full_name": "YOUR_LEGAL_NAME"' in prompt
     assert f"relative to `{REPO_ROOT}`" in prompt
     assert "pid `4242`" in prompt
-    assert f"uv run --project {REPO_ROOT} jobs captcha 9333" in prompt
+
+
+def test_agents_call_capsolver_with_the_key():
+    prompt = render(dry_run=False)
+
+    assert "**API key:** `CAP-test`" in prompt
+    assert prompt.count('"clientKey": "CAP-test"') == 2  # createTask and getTaskResult
+
+
+def test_without_a_key_agents_solve_captchas_by_hand():
+    prompt = render(dry_run=False, capsolver_key=None)
+
+    assert "**API key:** NOT CONFIGURED: skip to Manual fallback for all CAPTCHAs" in prompt
+    assert '"clientKey": ""' in prompt
 
 
 def test_run_mode_switches_with_dry_run():

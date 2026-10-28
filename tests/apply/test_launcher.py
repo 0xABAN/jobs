@@ -42,6 +42,7 @@ def fake_run(monkeypatch, tmp_path, agent_result: str) -> list:
     monkeypatch.setattr(launcher, "worker", worker)
     monkeypatch.setattr(launcher, "chrome", chrome)
     monkeypatch.setattr(launcher, "devtools_port", lambda profile: 9333)
+    monkeypatch.setattr(launcher, "env", lambda name: None)
     monkeypatch.setattr(launcher, "connect_playwright", lambda directory, port: None)
     monkeypatch.setattr(launcher, "RUNS_DIR", tmp_path / "runs")
     monkeypatch.setattr(launcher.pi, "run", lambda prompt, **options: f"```json\n{agent_result}\n```")

@@ -192,7 +192,6 @@ Run each command as `uv run jobs <command>`:
 | `status` | List the jobs that workers are applying to now. |
 | `browse [url]` | Open the jobs Chrome profile in the background and print its pid. |
 | `timeline [run id]` | Show where a run, finished or still running, spent its time. Without a run ID, it shows the latest run. |
-| `captcha <port>` | Solve the CAPTCHA blocking a page in a harness Chrome. Agents run this. |
 | `clean-mail` | Move automated application receipts and codes to Gmail's Trash. `--dry-run` lists them instead. |
 | `mail-auth` | Grant the mail cleanup its own Gmail token. |
 | `mail-schedule` | Have launchd run `clean-mail` every 15 minutes, or every `--every` minutes. |
@@ -215,11 +214,11 @@ Every `jobs apply` process shares the same workers, and jobs beyond them wait fo
 
 ### Browser tools
 
-Apply agents drive the page with `@playwright/mcp`, whose version is pinned in `src/jobs/apply/launcher.py`. Pi denies them the Playwright tools that run page scripts, close the tab, or change the browser, along with every Gmail tool that sends, deletes, or changes mail (`EXCLUDED_TOOLS` in `src/jobs/pi.py`). An orchestrating session browses job boards in a `jobs browse` Chrome through the `cua-driver` MCP server.
+Apply agents drive the page with `@playwright/mcp`, whose version is pinned in `src/jobs/apply/launcher.py`. Pi denies them the Playwright tools that run Playwright code, close the tab, or change the browser, along with every Gmail tool that sends, deletes, or changes mail (`EXCLUDED_TOOLS` in `src/jobs/pi.py`). Agents keep `browser_evaluate`, and the prompt has them use it only for CAPTCHAs. An orchestrating session browses job boards in a `jobs browse` Chrome through the `cua-driver` MCP server.
 
 ### CAPTCHAs
 
-When a reCAPTCHA (v2, invisible v2, or Enterprise) or a Cloudflare Turnstile blocks an apply agent, the agent runs `jobs captcha <devtools port>`. That command finds the CAPTCHA through Chrome's DevTools protocol, has CapSolver solve it, and injects the token. CapSolver cannot solve hCaptcha, which is why Lever is in `BANNED_SITES`. Score-based reCAPTCHA v3 has nothing to solve.
+Apply agents solve CAPTCHAs the way [ApplyPilot](https://github.com/Pickle-Pixel/ApplyPilot)'s agents do, following the CAPTCHAs section of `prompt.md`, which carries `CAPSOLVER_API_KEY`. After each page load, and after each Apply, Sign in, and Submit click, an agent runs a detect script with `browser_evaluate`. When the script finds a reCAPTCHA (v2 or v3), a Cloudflare Turnstile, an hCaptcha, or a FunCaptcha, the agent creates a CapSolver task, polls it for a token, and injects the token into the page. ApplyPilot's agents call CapSolver from the page, but Greenhouse's and Ashby's Content-Security-Policy blocks those requests, so agents here call it with `curl` from the shell. When CapSolver fails, or no key is set, agents try audio challenges and simple puzzles themselves, and otherwise fail with `captcha`. CapSolver no longer supports hCaptcha or FunCaptcha, so those CAPTCHAs fall through to that manual path. Lever's forms use hCaptcha, which is why Lever is in `BANNED_SITES`.
 
 ### Mail cleanup
 

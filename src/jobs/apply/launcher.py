@@ -20,7 +20,7 @@ from jobs.apply.prompt import render_prompt
 from jobs.apply.result import Result, parse_result
 from jobs.apply.workers import worker
 from jobs.chrome import chrome, devtools_port
-from jobs.config import REPO_ROOT, STATE_DIR, email_for, load_profile
+from jobs.config import REPO_ROOT, STATE_DIR, email_for, env, load_profile
 from jobs.sites import banned
 from jobs.tracker import Tracker
 
@@ -61,13 +61,12 @@ def apply(url: str, *, dry_run: bool, timeout_minutes: float, workers: int, firs
 
         with chrome(chrome_profile, url) as chrome_pid:
             stopwatch.lap("chrome")
-            port = devtools_port(chrome_profile)
-            connect_playwright(directory, port)
+            connect_playwright(directory, devtools_port(chrome_profile))
             run_dir.mkdir(parents=True, mode=0o700)
             prompt = run_dir / "prompt.md"
             prompt.write_text(render_prompt(
-                url, dry_run=dry_run, profile=profile, today=date.today(), chrome_pid=chrome_pid, devtools_port=port,
-                earlier_applications=earlier_applications,
+                url, dry_run=dry_run, profile=profile, today=date.today(), chrome_pid=chrome_pid,
+                capsolver_key=env("CAPSOLVER_API_KEY"), earlier_applications=earlier_applications,
             ), encoding="utf-8")
             try:
                 result = parse_result(pi.run(prompt, cwd=directory, log_dir=run_dir,

@@ -82,19 +82,19 @@ Fail with `not_eligible` only for an explicit hard requirement Adam cannot meet:
 ## Steps
 
 1. Take a snapshot (see Browser); Chrome is already open on the job URL.
-2. Read the posting: company, role, location, eligibility, and salary range. Confirm that the page matches the job you were given, and check the hard stops.
-3. Click Apply. If a new tab or window opens, continue there.
-4. Login wall: continue if already signed in, and prefer "apply as guest" or "continue without an account". Never sign out of an account Adam is signed in to: when its email is not his email for this employer, fail with `login_issue` and name the signed-in email (run 20261021-233234-5 signed him out of Microsoft Careers right after he signed in). Otherwise use Adam's account on the application site; Workday and similar sites keep one per employer. When the site offers only single sign-on, sign in through the provider whose account in this Chrome has Adam's email for this employer: Google for his Gmail, Microsoft for his school email (Penn State runs on Microsoft 365), otherwise LinkedIn. Choose that account and approve the consent screen. Never type a password or verification code for a provider; when one is asked for, or no signed-in account has that email, fail with `sso_required`, as for other providers such as Okta or Auth0 (Adam's rules, 2026-10-05 and 2026-10-06). Always use Adam's email for this employer and `personal.password`: sign in; if that fails, create the account; if the site says it already exists, reset its password to `personal.password` through the "Forgot password" email. Reset passwords only on the employer's application site, never on job boards such as LinkedIn, Indeed, or Handshake. Never type a password or code into the sign-in of an account that is also a personal account outside job applications, such as an Apple Account (iCloud) or a Google, Microsoft, or Meta (Facebook) account: `personal.password` is not their password, Adam signs in to them himself, and failed attempts can lock his account. When such a site asks for that sign-in, fail with `login_issue` (runs 20261006-0132xx typed it into Apple's). If `personal.password` is empty, the site's rules reject it, or none of this works, fail with `login_issue`. For a verification code or link, search Gmail narrowly by company and the email you used; mail to any of Adam's addresses arrives in his Gmail. Use only the newest matching message.
+2. Read the posting: company, role, location, eligibility, and salary range. Confirm that the page matches the job you were given, and check the hard stops. Then run CAPTCHA detect (see CAPTCHAs), and solve any CAPTCHA it finds before continuing.
+3. Click Apply. If a new tab or window opens, continue there. Snapshot, then run CAPTCHA detect: many sites trigger a CAPTCHA right after the Apply click. Solve any it finds before continuing.
+4. Login wall: continue if already signed in, and prefer "apply as guest" or "continue without an account". Never sign out of an account Adam is signed in to: when its email is not his email for this employer, fail with `login_issue` and name the signed-in email (run 20261021-233234-5 signed him out of Microsoft Careers right after he signed in). Otherwise use Adam's account on the application site; Workday and similar sites keep one per employer. When the site offers only single sign-on, sign in through the provider whose account in this Chrome has Adam's email for this employer: Google for his Gmail, Microsoft for his school email (Penn State runs on Microsoft 365), otherwise LinkedIn. Choose that account and approve the consent screen. Never type a password or verification code for a provider; when one is asked for, or no signed-in account has that email, fail with `sso_required`, as for other providers such as Okta or Auth0 (Adam's rules, 2026-10-05 and 2026-10-06). Always use Adam's email for this employer and `personal.password`: sign in; if that fails, create the account; if the site says it already exists, reset its password to `personal.password` through the "Forgot password" email. Reset passwords only on the employer's application site, never on job boards such as LinkedIn, Indeed, or Handshake. Never type a password or code into the sign-in of an account that is also a personal account outside job applications, such as an Apple Account (iCloud) or a Google, Microsoft, or Meta (Facebook) account: `personal.password` is not their password, Adam signs in to them himself, and failed attempts can lock his account. When such a site asks for that sign-in, fail with `login_issue` (runs 20261006-0132xx typed it into Apple's). If `personal.password` is empty, the site's rules reject it, or none of this works, fail with `login_issue`. For a verification code or link, search Gmail narrowly by company and the email you used; mail to any of Adam's addresses arrives in his Gmail. Use only the newest matching message. After clicking Sign in, run CAPTCHA detect: sign-in pages often have invisible CAPTCHAs that silently block the form. Solve any it finds, then sign in again.
 5. Upload the resume first: many sites parse it and pre-fill fields. Check every pre-filled field against the profile and the resume, and fix mismatches.
 6. Fill every required field and every optional field the profile answers. On multi-page forms, fill each page and click Next or Continue.
 7. Verify before submitting: take one full `browser_snapshot` and check that every required field (its name ends in `*` or it shows `[required]`) has a value, text values are correct, each dropdown passed its check in Filling fields, and the resume's filename appears on the page. A typeahead's chosen option shows as text next to the field, not after its colon. Return that check from the script as one line per field, `name: value`, so the run's log keeps the final form; logs cut long snapshots.
-8. Submit, unless this is a dry run. Snapshot the page. Fix validation errors and retry; retries count toward the 3-attempt limit. Fix a rejected value by changing its format to one the error message allows, never by retyping it unchanged: Microsoft rejected the phone 5707105165 three times as agents retyped it unchanged, though its message allows dashes, as in 570-710-5165 (runs 20261005-220203-3 and 20261006-015121-5).
+8. Submit, unless this is a dry run. Snapshot the page, then run CAPTCHA detect: Submit often triggers an invisible CAPTCHA. Solve any it finds; the form may submit once the token clears, or click Submit again. Fix validation errors and retry; retries count toward the 3-attempt limit. Fix a rejected value by changing its format to one the error message allows, never by retyping it unchanged: Microsoft rejected the phone 5707105165 three times as agents retyped it unchanged, though its message allows dashes, as in 570-710-5165 (runs 20261005-220203-3 and 20261006-015121-5).
 9. Confirm: the page says the application was received, or a confirmation email arrived. Without either, fail with `unconfirmed`, but only when the form went away after Submit: a form still showing with its fields was never sent, so after 3 attempts it is `stuck`, which can be retried.
 10. Write the result.
 
 **Workday:** each employer has its own Workday account (step 4). After Apply, choose "Autofill with Resume" and upload the resume (see Filling fields). The pages that follow (My Information, My Experience, Application Questions, Voluntary Disclosures, Self Identify, Review) each end with "Save and Continue".
 
-**CAPTCHAs, at any step:** a reCAPTCHA badge or notice that does not stop you is not a CAPTCHA; carry on. Solve simple text or math questions yourself. For a reCAPTCHA or Cloudflare check that blocks you, run `uv run --project ${repo_root} jobs captcha ${devtools_port}` from the shell; it solves the CAPTCHA in the page and prints JSON. Then redo the blocked action, such as clicking Submit again. If it prints an `error`, or the CAPTCHA comes back after one retry, fail with `captcha`. If the site emails a verification code instead, get it from Gmail as in step 4. Greenhouse splits its 8-character code into 8 one-character boxes, and typing the whole code into the first box keeps only its first character: take a new snapshot, then `browser_type` one character into each box in order. Read all 8 boxes back and compare them with the code, letter case included, before clicking Submit: a wrong code can lock the application.
+**Emailed security codes:** get them from Gmail as in step 4. Greenhouse splits its 8-character code into 8 one-character boxes, and typing the whole code into the first box keeps only its first character: take a new snapshot, then `browser_type` one character into each box in order. Read all 8 boxes back and compare them with the code, letter case included, before clicking Submit: a wrong code can lock the application.
 
 ## Browser
 
@@ -117,6 +117,9 @@ The call shapes below are complete; skip `describeTool`.
 | `browser_wait_for` | `text`, or `time` in seconds (at most 30) | |
 | `browser_navigate` | `url` | |
 | `browser_take_screenshot` | `scale: "css"` | an image |
+| `browser_evaluate` | `function: <JavaScript function source>` | the function's return value, as JSON |
+
+Use `browser_evaluate` only for the scripts in CAPTCHAs; read and fill the form with the other calls.
 
 ### Reading
 
@@ -147,6 +150,201 @@ Never press Enter in any other field: in a form, Enter submits the whole applica
 - Page dialogs (alert, confirm, beforeunload): `browser_handle_dialog`.
 - New tabs: `browser_tabs({action: "list"})`, then `browser_tabs({action: "select", index})` for the newest one.
 - Navigation: `browser_navigate({url})`.
+
+## CAPTCHAs
+
+Solve CAPTCHAs through the CapSolver REST API. There is no browser extension: you control the entire flow. Run the Detect and Inject scripts below in the page, each as the `function` of a `browser_evaluate` call of its own. Call the API itself from the shell with `curl`: job sites' Content-Security-Policy blocks requests from the page to CapSolver.
+
+- **API key:** ${capsolver_key_note}
+- **API base:** https://api.capsolver.com
+
+When any CAPTCHA appears (hCaptcha, reCAPTCHA, or Turnstile), whatever it looks like:
+
+1. Run Detect to get its type and sitekey.
+2. Run Solve with the CapSolver API: create a task, poll for the token, and inject it.
+3. Go to Manual fallback only when CapSolver returns an `errorId` above 0.
+
+Never skip the API call because of how a CAPTCHA looks. CapSolver solves CAPTCHAs on its servers and never needs to see or interact with images, puzzles, or games: even "drag the pipe" or "click all traffic lights" hCaptchas are solved by an API token. Always try the API first.
+
+Invisible CAPTCHAs (Turnstile, reCAPTCHA v3) show no widget but silently block form submissions, and Detect finds them anyway. Run it after every navigation, after every Apply, Sign in, or Submit click, and whenever a page seems stuck.
+
+### Detect
+
+Order matters: hCaptcha elements also have `data-sitekey`, so the script checks for hCaptcha before reCAPTCHA.
+
+```js
+() => {
+  const r = {};
+  const url = window.location.href;
+  // 1. hCaptcha (check FIRST -- hCaptcha uses data-sitekey too)
+  const hc = document.querySelector('.h-captcha, [data-hcaptcha-sitekey]');
+  if (hc) {
+    r.type = 'hcaptcha'; r.sitekey = hc.dataset.sitekey || hc.dataset.hcaptchaSitekey;
+  }
+  if (!r.type && document.querySelector('script[src*="hcaptcha.com"], iframe[src*="hcaptcha.com"]')) {
+    const el = document.querySelector('[data-sitekey]');
+    if (el) { r.type = 'hcaptcha'; r.sitekey = el.dataset.sitekey; }
+  }
+  // 2. Cloudflare Turnstile
+  if (!r.type) {
+    const cf = document.querySelector('.cf-turnstile, [data-turnstile-sitekey]');
+    if (cf) {
+      r.type = 'turnstile'; r.sitekey = cf.dataset.sitekey || cf.dataset.turnstileSitekey;
+      if (cf.dataset.action) r.action = cf.dataset.action;
+      if (cf.dataset.cdata) r.cdata = cf.dataset.cdata;
+    }
+  }
+  if (!r.type && document.querySelector('script[src*="challenges.cloudflare.com"]')) {
+    r.type = 'turnstile_script_only'; r.note = 'Wait 3s and re-detect.';
+  }
+  // 3. reCAPTCHA v3 (invisible, loaded via render= param)
+  if (!r.type) {
+    const s = document.querySelector('script[src*="recaptcha"][src*="render="]');
+    if (s) {
+      const m = s.src.match(/render=([^&]+)/);
+      if (m && m[1] !== 'explicit') { r.type = 'recaptchav3'; r.sitekey = m[1]; }
+    }
+  }
+  // 4. reCAPTCHA v2 (checkbox or invisible)
+  if (!r.type) {
+    const rc = document.querySelector('.g-recaptcha');
+    if (rc) { r.type = 'recaptchav2'; r.sitekey = rc.dataset.sitekey; }
+  }
+  if (!r.type && document.querySelector('script[src*="recaptcha"]')) {
+    const el = document.querySelector('[data-sitekey]');
+    if (el) { r.type = 'recaptchav2'; r.sitekey = el.dataset.sitekey; }
+  }
+  // 5. FunCaptcha (Arkose Labs)
+  if (!r.type) {
+    const fc = document.querySelector('#FunCaptcha, [data-pkey], .funcaptcha');
+    if (fc) { r.type = 'funcaptcha'; r.sitekey = fc.dataset.pkey; }
+  }
+  if (!r.type && document.querySelector('script[src*="arkoselabs"], script[src*="funcaptcha"]')) {
+    const el = document.querySelector('[data-pkey]');
+    if (el) { r.type = 'funcaptcha'; r.sitekey = el.dataset.pkey; }
+  }
+  if (r.type) { r.url = url; return r; }
+  return null;
+}
+```
+
+- `null`: no CAPTCHA. Continue normally.
+- `turnstile_script_only`: `browser_wait_for({time: 3})`, then run Detect again.
+- Any other type: go on to Solve.
+
+### Solve
+
+Three steps: create the task and poll for its token from the shell, then inject the token in the page.
+
+**1. Create the task.** Copy this exactly, replacing its 3 placeholders: `TASK_TYPE` from the table below, `PAGE_URL` with the `url` from Detect, and `SITE_KEY` with the `sitekey` from Detect.
+
+```sh
+curl -s https://api.capsolver.com/createTask -H 'Content-Type: application/json' \
+  -d '{"clientKey": "${capsolver_key}", "task": {"type": "TASK_TYPE", "websiteURL": "PAGE_URL", "websiteKey": "SITE_KEY"}}'
+```
+
+Use exactly these `TASK_TYPE` strings:
+
+| Detect's `type` | `TASK_TYPE` |
+|---|---|
+| `hcaptcha` | `HCaptchaTaskProxyLess` |
+| `recaptchav2` | `ReCaptchaV2TaskProxyLess` |
+| `recaptchav3` | `ReCaptchaV3TaskProxyLess` |
+| `turnstile` | `AntiTurnstileTaskProxyLess` |
+| `funcaptcha` | `FunCaptchaTaskProxyLess` |
+
+For `recaptchav3`, add `"pageAction": "submit"` to the task object, or the action the page's scripts use. For `turnstile`, add `"metadata": {"action": "...", "cdata": "..."}` when Detect returned them.
+
+CapSolver replies `{"errorId": 0, "taskId": "abc123"}` on success. An `errorId` above 0 means the solve failed: go to Manual fallback.
+
+**2. Poll.** Replace `TASK_ID` with the `taskId` from step 1. In a loop, wait 3 seconds (`sleep 3`), then run:
+
+```sh
+curl -s https://api.capsolver.com/getTaskResult -H 'Content-Type: application/json' \
+  -d '{"clientKey": "${capsolver_key}", "taskId": "TASK_ID"}'
+```
+
+- `status` `processing`: wait 3 seconds and poll again, at most 10 polls (30 seconds).
+- `status` `ready`: the token is `solution.gRecaptchaResponse` for reCAPTCHA and hCaptcha, and `solution.token` for Turnstile.
+- An `errorId` above 0, or 30 seconds without a token: go to Manual fallback.
+
+**3. Inject the token.** In the page, run the `browser_evaluate` script for the CAPTCHA's type, with `THE_TOKEN` replaced by the token string.
+
+reCAPTCHA v2 and v3:
+
+```js
+() => {
+  const token = 'THE_TOKEN';
+  document.querySelectorAll('[name="g-recaptcha-response"]').forEach(el => { el.value = token; el.style.display = 'block'; });
+  if (window.___grecaptcha_cfg) {
+    const clients = window.___grecaptcha_cfg.clients;
+    for (const key in clients) {
+      const walk = (obj, d) => {
+        if (d > 4 || !obj) return;
+        for (const k in obj) {
+          if (typeof obj[k] === 'function' && k.length < 3) try { obj[k](token); } catch(e) {}
+          else if (typeof obj[k] === 'object') walk(obj[k], d+1);
+        }
+      };
+      walk(clients[key], 0);
+    }
+  }
+  return 'injected';
+}
+```
+
+hCaptcha:
+
+```js
+() => {
+  const token = 'THE_TOKEN';
+  const ta = document.querySelector('[name="h-captcha-response"], textarea[name*="hcaptcha"]');
+  if (ta) ta.value = token;
+  document.querySelectorAll('iframe[data-hcaptcha-response]').forEach(f => f.setAttribute('data-hcaptcha-response', token));
+  const cb = document.querySelector('[data-hcaptcha-widget-id]');
+  if (cb && window.hcaptcha) try { window.hcaptcha.getResponse(cb.dataset.hcaptchaWidgetId); } catch(e) {}
+  return 'injected';
+}
+```
+
+Turnstile:
+
+```js
+() => {
+  const token = 'THE_TOKEN';
+  const inp = document.querySelector('[name="cf-turnstile-response"], input[name*="turnstile"]');
+  if (inp) inp.value = token;
+  if (window.turnstile) try { const w = document.querySelector('.cf-turnstile'); if (w) window.turnstile.getResponse(w); } catch(e) {}
+  return 'injected';
+}
+```
+
+FunCaptcha:
+
+```js
+() => {
+  const token = 'THE_TOKEN';
+  const inp = document.querySelector('#FunCaptcha-Token, input[name="fc-token"]');
+  if (inp) inp.value = token;
+  if (window.ArkoseEnforcement) try { window.ArkoseEnforcement.setConfig({data: {blob: token}}) } catch(e) {}
+  return 'injected';
+}
+```
+
+After injecting, `browser_wait_for({time: 2})`, then snapshot:
+
+- The widget is gone or shows a green check: solved. Click Submit if the form still needs it.
+- Nothing changed: click the Submit, Verify, or Continue button; some sites need it.
+- Still stuck: the token may have expired, since tokens last about 2 minutes. Start again from step 1.
+
+### Manual fallback
+
+Come here only when CapSolver failed (an `errorId` above 0, or no token within 30 seconds) or its API key is not configured. If you have not tried CapSolver yet, go back and try it first. Then:
+
+1. Look for an "audio" or "accessibility" button and click it for an easier challenge.
+2. Solve text and logic puzzles yourself, step by step. Common tricks: "All but 9 die" leaves 9; "3 sisters and 4 brothers, how many siblings?" is 7.
+3. Solve simple text CAPTCHAs, such as "What is 3+7?" or "Type the word".
+4. If all else fails, fail with `captcha`.
 
 ## Profile
 
