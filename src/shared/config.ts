@@ -7,7 +7,7 @@ export const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), "../..");
 
 export const paths = {
   profile: join(REPO_ROOT, "profile.json"),
-  chromeProfile: join(homedir(), "Library/Application Support/CuaDriver/BrowserProfiles/jobs"),
+  chromeProfile: join(homedir(), ".jobs/chrome"),
   state: join(homedir(), ".jobs"),
 };
 
