@@ -99,7 +99,6 @@ def test_prepared_chrome_copies_keep_session_cookies_and_never_offer_to_save_pas
     (profile / "Default").mkdir(parents=True)
     (profile / "Default/Preferences").write_text(json.dumps({"profile": {"name": "jobs"}}))
     monkeypatch.setattr(workers, "CHROME_PROFILE", profile)
-    monkeypatch.setattr(workers, "REPO_ROOT", tmp_path)
 
     workers._prepare(tmp_path / "worker")
 

@@ -12,7 +12,7 @@ import time
 from contextlib import contextmanager
 from pathlib import Path
 
-from jobs.config import CHROME_PROFILE, REPO_ROOT, SESSION_WORKERS, STATE_DIR
+from jobs.config import CHROME_PROFILE, SESSION_WORKERS, STATE_DIR
 from jobs.lock import locked
 from jobs.sites import ats_board, on_site
 
@@ -124,7 +124,7 @@ def _greenhouse_board(url: str) -> str | None:
 
 
 def _prepare(directory: Path) -> None:
-    """Give a worker the repo's MCP servers and, on first use, a copy of Adam's Chrome profile and its logins.
+    """Give a worker, on first use, a copy of Adam's Chrome profile and its logins.
 
     Every time, it also turns off Chrome's offer to save passwords in that copy: the "Save
     password?" bubble after a sign-up opens as a second window of the agent's Chrome, and
@@ -135,11 +135,6 @@ def _prepare(directory: Path) -> None:
     a new Chrome, so without it Adam's sign-in on worker 5 was gone by the first run
     (2026-10-10). Restoring opens no tabs, because ``launch`` starts Chrome windowless.
     """
-    mcp = directory / ".pi/mcp.json"
-    mcp.parent.mkdir(parents=True, exist_ok=True)
-    mcp.unlink(missing_ok=True)
-    mcp.symlink_to(REPO_ROOT / ".pi/mcp.json")
-
     chrome = directory / "chrome"
     if not chrome.exists():
         # Copy aside and rename, so an interrupted copy never passes for a finished one.

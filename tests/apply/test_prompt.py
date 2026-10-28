@@ -10,7 +10,7 @@ URL = "https://job-boards.greenhouse.io/example/jobs/1"
 def render(*, dry_run: bool, earlier_applications=()) -> str:
     profile = load_profile(REPO_ROOT / "profile.example.json")
     return render_prompt(
-        URL, dry_run=dry_run, profile=profile, today=date(2026, 10, 4), session="apply-test", chrome_pid=4242,
+        URL, dry_run=dry_run, profile=profile, today=date(2026, 10, 4), chrome_pid=4242,
         devtools_port=9333, earlier_applications=earlier_applications,
     )
 

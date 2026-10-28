@@ -16,8 +16,8 @@ from jobs.tracker import Application
 TEMPLATE_PATH = Path(__file__).with_name("prompt.md")
 
 
-def render_prompt(job_url: str, *, dry_run: bool, profile: dict, today: date, session: str, chrome_pid: int,
-                  devtools_port: int, earlier_applications: list[Application] = ()) -> str:
+def render_prompt(job_url: str, *, dry_run: bool, profile: dict, today: date, chrome_pid: int, devtools_port: int,
+                  earlier_applications: list[Application] = ()) -> str:
     """Return the complete prompt for applying to one job in the Chrome the launcher opened.
 
     ``earlier_applications`` are Adam's applications to this employer in the tracker, so the agent can
@@ -43,7 +43,6 @@ def render_prompt(job_url: str, *, dry_run: bool, profile: dict, today: date, se
         run_mode=run_mode,
         today=today.strftime("%m/%d/%Y"),
         repo_root=REPO_ROOT,
-        session=session,
         chrome_pid=chrome_pid,
         devtools_port=devtools_port,
         banned_sites=", ".join(BANNED_SITES),

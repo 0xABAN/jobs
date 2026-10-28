@@ -26,7 +26,7 @@ from jobs.tracker import Tracker
 
 RUNS_DIR = STATE_DIR / "runs"
 
-# Transcripts reach about 100 MB per run, mostly raw CUA results, and prompts hold Adam's
+# Transcripts reach about 100 MB per run, mostly raw browser results, and prompts hold Adam's
 # password, so each run's logs except result.json are deleted after this long.
 LOGS_KEPT_HOURS = 3
 
@@ -57,15 +57,16 @@ def apply(url: str, *, dry_run: bool, timeout_minutes: float, workers: int, firs
 
         run_id = f"{datetime.now():%Y%m%d-%H%M%S}-{directory.name}"
         run_dir = RUNS_DIR / run_id
+        chrome_profile = directory / "chrome"
 
-        with chrome(directory / "chrome", url) as chrome_pid:
+        with chrome(chrome_profile, url) as chrome_pid:
             stopwatch.lap("chrome")
-            connect_playwright(directory, devtools_port(directory / "chrome"))
+            port = devtools_port(chrome_profile)
+            connect_playwright(directory, port)
             run_dir.mkdir(parents=True, mode=0o700)
             prompt = run_dir / "prompt.md"
             prompt.write_text(render_prompt(
-                url, dry_run=dry_run, profile=profile, today=date.today(), session=f"apply-{run_id}",
-                chrome_pid=chrome_pid, devtools_port=devtools_port(directory / "chrome"),
+                url, dry_run=dry_run, profile=profile, today=date.today(), chrome_pid=chrome_pid, devtools_port=port,
                 earlier_applications=earlier_applications,
             ), encoding="utf-8")
             try:
@@ -96,7 +97,7 @@ def connect_playwright(directory: Path, port: int) -> None:
     """Give the worker's agent Gmail and Playwright, attached to this run's Chrome, and no other MCP server.
 
     The DevTools port changes with every Chrome launch, so each run writes the worker's MCP
-    config afresh from the repo's, which stays the shared source for the other servers.
+    config afresh from the repo's, which stays the shared source for Gmail's.
     """
     config = json.loads((REPO_ROOT / ".pi/mcp.json").read_text(encoding="utf-8"))
     servers = config["mcpServers"]
@@ -113,7 +114,8 @@ def connect_playwright(directory: Path, port: int) -> None:
     }
 
     path = directory / ".pi/mcp.json"
-    path.unlink(missing_ok=True)  # a symlink to the repo's config until now
+    path.parent.mkdir(exist_ok=True)
+    path.unlink(missing_ok=True)  # older workers hold a symlink to the repo's config here; never write through it
     path.write_text(json.dumps(config, indent=2), encoding="utf-8")
 
 
