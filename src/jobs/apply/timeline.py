@@ -12,6 +12,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from jobs.pi import events
 
 
 @dataclass
@@ -37,11 +38,7 @@ def read_turns(transcript: Path) -> tuple[list[Turn], float]:
     turns, started, model_calls = [], {}, set()
     thinking_since = last = 0.0
 
-    for line in transcript.read_text(encoding="utf-8").split("\n"):
-        if not line.strip():
-            continue
-
-        event = json.loads(line)
+    for event in events(transcript):
         if "t" not in event:
             raise ValueError(f"{transcript} has no timestamps: it predates timestamped transcripts")
         last, kind = event["t"], event["type"]

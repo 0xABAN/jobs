@@ -6,6 +6,7 @@ import signal
 import subprocess
 import threading
 import time
+from collections.abc import Iterator
 from pathlib import Path
 from typing import IO
 
@@ -60,34 +61,38 @@ def run(prompt: Path, *, cwd: Path, log_dir: Path, timeout_minutes: float, model
 
         try:
             agent.wait(timeout=timeout_minutes * 60)
-        except subprocess.TimeoutExpired:
-            os.killpg(agent.pid, signal.SIGKILL)
-            agent.wait()
-            raise
         finally:
+            if agent.poll() is None:  # timed out, or interrupted
+                os.killpg(agent.pid, signal.SIGKILL)
+                agent.wait()
             copier.join()
 
     return final_message(transcript_path)
 
 
-def _timestamp(events: IO[bytes], transcript: Path, launched: float) -> None:
+def _timestamp(stdout: IO[bytes], transcript: Path, launched: float) -> None:
     """Copy Pi's JSON events to ``transcript`` as they arrive, each with ``t`` inserted as its first field."""
     with transcript.open("wb", buffering=0) as out:  # unbuffered, so a running agent's transcript is current
-        for line in events:
+        for line in stdout:
             if line.strip():
                 out.write(b'{"t":%.3f,' % (time.monotonic() - launched) + line.removeprefix(b"{"))
+
+
+def events(transcript: Path) -> Iterator[dict]:
+    """Yield the events of a Pi JSON-mode transcript one at a time; transcripts reach about 100 MB."""
+    # Binary lines end at LF only, as Pi frames records; str.splitlines() would also split on
+    # Unicode separators inside strings.
+    with transcript.open("rb") as lines:
+        for line in lines:
+            if line.strip():
+                yield json.loads(line)
 
 
 def final_message(transcript: Path) -> str:
     """Return the text of the agent's last message in a Pi JSON-mode transcript, or its error."""
     final = ""
 
-    # Pi frames records with LF only; splitlines() would also split on Unicode separators inside strings.
-    for line in transcript.read_text(encoding="utf-8").split("\n"):
-        if not line.strip():
-            continue
-
-        event = json.loads(line)
+    for event in events(transcript):
         if event.get("type") == "message_end" and event["message"]["role"] == "assistant":
             message = event["message"]
             text = "".join(block["text"] for block in message["content"] if block["type"] == "text")
