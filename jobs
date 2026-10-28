@@ -1,0 +1,4 @@
+#!/bin/sh
+# The harness's command line: ./jobs <command>. Node runs the TypeScript as it is; node:sqlite,
+# which holds the harness's locks, is still marked experimental, so its warning is turned off.
+exec node --disable-warning=ExperimentalWarning "$(dirname "$0")/src/cli.ts" "$@"

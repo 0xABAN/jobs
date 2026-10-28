@@ -33,18 +33,18 @@ Six workers take most of the Mac's memory. If `memory_pressure` reports less tha
 1. Take the top Workday, Greenhouse, and Ashby jobs from the queue (`sourcing.md`). If a section is empty, take the next job from another and note it in the record. Priority jobs go to the priority lane instead.
 2. From the lane's checkout, launch the live applications, Workday first because it takes about 25 minutes, and 30 seconds later the fixed dry runs, so the live runs claim the lane's 3 workers first:
 
-       nohup uv run jobs apply --first-worker <0 or 3> <workday> <greenhouse> <ashby> >> ~/.jobs/apply.log 2>&1 &
-       nohup uv run jobs apply --dry-run --first-worker <0 or 3> <references> <controls> >> ~/.jobs/eval.log 2>&1 &
+       nohup ./jobs apply --first-worker <0 or 3> <workday> <greenhouse> <ashby> >> ~/.jobs/apply.log 2>&1 &
+       nohup ./jobs apply --dry-run --first-worker <0 or 3> <references> <controls> >> ~/.jobs/eval.log 2>&1 &
 
    A URL runs on one worker at a time across both lanes, so a fixed run waits while the other lane's run of the same posting finishes.
 
-3. While it runs, source jobs (`sourcing.md`); never just wait. Every few minutes, check `uv run jobs status`, grade each run that has finished (`rubric.md`; transcripts are deleted 3 hours after a run), and turn what its log shows into `ideas.md` entries. `uv run jobs timeline <run id>` shows where a run's time went.
+3. While it runs, source jobs (`sourcing.md`); never just wait. Every few minutes, check `./jobs status`, grade each run that has finished (`rubric.md`; transcripts are deleted 3 hours after a run), and turn what its log shows into `ideas.md` entries. `./jobs timeline <run id>` shows where a run's time went.
 
 ## The cycle
 
 1. **Baseline.** Measure 2 passes of `main` and record them when there is no baseline yet, the benchmark changed, the latest baseline is over a day old, 3 experiments in a row were reverted, or `main` holds kept changes that were never measured together.
 2. **Hypothesis.** Take the `ideas.md` entry with the best expected gain for its effort. It must rest on evidence: a run id and what happened in it.
-3. **Change.** Make exactly one change in a free lane, mark its entry **(running in lane a)** or **(running in lane b)**, and run `uv run pytest -q` there. The two lanes run different ideas.
+3. **Change.** Make exactly one change in a free lane, mark its entry **(running in lane a)** or **(running in lane b)**, and run `npm test` there. The two lanes run different ideas.
 4. **Measure.** Run 2 passes. A change aimed at one ATS needs at least 4 runs there, counting its reference; add passes until it has them.
 5. **Decide** by the rule below, then **record** the verdict.
 
@@ -111,5 +111,5 @@ An infrastructure failure, such as a Claude usage limit, cua-driver, an expired 
 Rebuild the state from:
 - `git log`: the records and the current baseline.
 - `git worktree list` and each lane's `git diff`: a lane's uncommitted change is its running experiment, marked in `ideas.md`.
-- `uv run jobs status`, `~/.jobs/apply.log`, `~/.jobs/eval.log`, and the queue, `~/.jobs/queue.md`.
+- `./jobs status`, `~/.jobs/apply.log`, `~/.jobs/eval.log`, and the queue, `~/.jobs/queue.md`.
 - The grades in `~/.jobs/runs/*/result.json`.
