@@ -161,6 +161,17 @@
 \section{\textbf{PROJECTS}}
     \resumeSubHeadingListStart
     \resumeProjectHeading
+  {\href{https://advm.dev/}{\textcolor{linkblue}{\underline{\vercelLogo\ Retro OS Portfolio}}}
+  $|$
+  \emph{TypeScript, Python, PyTorch, Unsloth, vLLM}
+  }{}
+  \resumeItemListStart
+    \resumeItem{Fine-tuned \textbf{Qwen3-8B} via LoRA to replicate my online persona based on \textbf{81K+} processed Discord message pairs}
+    \resumeItem{Served through a self-built \$1,500 \textbf{RTX 5060 Ti 16GB} home server, managed over \textbf{SSH}, removing 90s cold starts}
+    \resumeItem{Quantized to FP8 for \textbf{vLLM} (\textbf{40\%} faster replies) and scored \textbf{97\%} LLM-judged voice match vs. 90\% for base Qwen3}
+    \resumeItem{Designed a Windows 95 desktop emulator in \textbf{Next.js} with draggable windows and interactive apps, earning \textbf{3K+} visits}
+  \resumeItemListEnd
+    \resumeProjectHeading
   {\href{https://github.com/0xABAN/YADL}{\textcolor{linkblue}{\underline{\faGithub\ Agent-Driven Vision Annotation}}}
   $|$
   \emph{Python, WebMCP, OpenCV}
@@ -183,15 +194,6 @@
     \resumeItem{Used Gemini to \textbf{classify} chat vs. drawing requests, then cropped subjects with \textbf{Grounding DINO} on \textbf{CUDA} (PyTorch)}
     \resumeItem{Integrated OpenAI Whisper for voice prompts and gated each image generation behind an on-canvas accept/reject overlay}
     \resumeItem{Saved tldraw snapshots as \textbf{PostgreSQL JSONB} on a 2s debounce, generating PNG previews and skipping saves offline}
-  \resumeItemListEnd
-     \resumeProjectHeading
-  {\href{https://github.com/AdamPSU/simulacra}{\textcolor{linkblue}{\underline{\faGithub\ Multi-Agent Social Simulation}}} \textbf{(YHack '26 K2 Think V2 1st place)}
-  $|$
-  \emph{Python, LangGraph, asyncio}
-  }{}
-  \resumeItemListStart
-    \resumeItem{Built a multi-agent simulation engine with FastAPI and \textbf{LangGraph StateGraph}, using asyncio for concurrent agent execution, shared memory streams, and Pydantic validation for structured outputs}
-    \resumeItem{Modeled echo-chamber formation across \textbf{50+ agents} using recency-weighted memory retrieval, threshold-triggered reflection, and Deffuant bounded-confidence opinion updates; streamed simulation updates over Socket.IO}
   \resumeItemListEnd
     \resumeSubHeadingListEnd
 
