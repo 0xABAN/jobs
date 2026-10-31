@@ -100,6 +100,11 @@
 \newcommand{\resumeItemListStart}{\begin{itemize}}
 \newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-8pt}}
 
+% fontawesome5 has no Vercel icon, so a filled triangle stands in for its logo. The AMS glyph is
+% taller than it is wide, so it's squashed to Vercel's equilateral shape, scaled to the height of a
+% capital letter, and lifted onto the baseline.
+\newcommand{\vercelLogo}{\raisebox{0.02em}{\scalebox{1.43}[1.148]{$\blacktriangle$}}}
+
 
 %-------------------------------------------
 %%%%%%  RESUME STARTS HERE  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -113,7 +118,7 @@
     \small University Park, PA $|$ \href{mailto:art5809@psu.edu}{\underline{Email \faEnvelope}} $|$
     \href{https://www.linkedin.com/in/adam-torres-encarnacion/}{\underline{LinkedIn \faLinkedin}} $|$
     \href{https://github.com/0xABAN}{\underline{GitHub \faGithub}} $|$
-    \href{https://advm.dev/}{\underline{Portfolio \raisebox{-0.0625em}{\resizebox{0.875em}{0.875em}{$\blacktriangle$}}}}
+    \href{https://advm.dev/}{\underline{Portfolio \vercelLogo}}
 \end{center}
 
 
