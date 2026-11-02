@@ -11,7 +11,7 @@ This repo applies to jobs from their posting URLs. Use it through `./jobs`; `./j
 ## Accounts and mail
 
 - `./jobs browse [url]` opens the jobs Chrome profile (`~/.jobs/chrome`), which holds Adam's job-site logins, and prints its pid; `kill` that pid when you are done. Each worker copies this profile on first use.
-- Workers 4 and 5 hold sign-ins Adam made by hand, and `SESSION_WORKERS` in `src/shared/config.ts` routes those sites' jobs to them: Y Combinator (Work at a Startup) on worker 4, and Microsoft Careers with his Gmail on worker 5. Apple's sign-in lapsed, so Adam applies to Apple roles himself. When a session lapses, its runs fail with `login_issue`; ask Adam to sign in again in a Chrome opened on that worker's profile.
+- Workers 4, 5, and 7 hold sign-ins Adam made by hand, and `SESSION_WORKERS` in `src/shared/config.ts` routes those sites' jobs to them: Y Combinator (Work at a Startup) on worker 4, Microsoft Careers with his Gmail on worker 5, and Google Careers on worker 7, whose Chrome profile started empty and holds only the Google account for his school email. Apple's sign-in lapsed, so Adam applies to Apple roles himself. When a session lapses, its runs fail with `login_issue`; ask Adam to sign in again in a Chrome opened on that worker's profile.
 - Mail to `personal.school_email` no longer reaches Gmail, so agents never see codes or reset links sent there. Read that inbox in Outlook web through the jobs profile: `./jobs browse https://outlook.office.com/mail/`.
 - `./jobs clean-mail` trashes application receipts and security codes at least 15 minutes old, and `--dry-run` lists what it would trash. `./jobs mail-schedule` runs it every 15 minutes, and `./jobs apply` also cleans while it runs.
 

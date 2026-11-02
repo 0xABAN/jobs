@@ -16,6 +16,7 @@ export const BANNED_SITES = ["lever.co"];
 export const SESSION_WORKERS = new Map<number, readonly string[]>([
   [4, ["ycombinator.com", "workatastartup.com"]],
   [5, ["jobs.apple.com", "careers.microsoft.com"]],
+  [7, ["google.com"]],
 ]);
 
 export type Profile = {
