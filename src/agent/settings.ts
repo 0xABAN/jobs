@@ -1,7 +1,7 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
 
-export const MODEL = "openai-codex/gpt-6.1-sol:low";
+export const MODEL = "openai/gpt-6.1-sol:low";
 
 export const EXTENSIONS = ["builtin:mcp", "builtin:codemode"];
 
