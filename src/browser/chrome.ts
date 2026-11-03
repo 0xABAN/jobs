@@ -13,6 +13,7 @@ const HTTP_CACHE_BYTES = 64 * 1024 * 1024;
 
 const FLAGS = [
   "--remote-debugging-port=0",
+  "--disable-blink-features=AutomationControlled",
   "--no-first-run",
   "--no-default-browser-check",
   "--disable-extensions",
