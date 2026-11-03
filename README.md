@@ -48,7 +48,7 @@ This checkout is set up for its author, Adam. To use it yourself, follow [Setup]
    }
    ```
 
-   Run `pi` here, trust the project, and `/login` to the provider of the agents' model (`MODEL` in `src/agent/settings.ts`).
+   Run `pi` here and trust the project. The agents' model (`MODEL` in `src/agent/settings.ts`) runs through [pi-claude-bridge](https://github.com/elidickinson/pi-claude-bridge), which bills your Claude subscription: `pi install npm:pi-claude-bridge`, then sign in to Claude Code with `claude`.
 7. **Optional.** Put `CAPSOLVER_API_KEY=<key>` in `.env`, and run `./jobs mail-schedule` to clean mail every 15 minutes.
 
 Then try `./jobs apply --dry-run <posting url>` followed by `./jobs timeline`.
