@@ -4,7 +4,7 @@ import { join } from "node:path";
 export const MODEL = "claude-bridge/claude-haiku-5-5:low";
 
 // pi-claude-bridge runs Claude through Claude Code, so agents use Adam's Claude subscription instead of API billing.
-const CLAUDE_BRIDGE = join(homedir(), ".pi/agent/npm/node_modules/pi-claude-bridge/src/index.ts");
+const CLAUDE_BRIDGE = join(homedir(), ".pi/agent/git/github.com/0xABAN/pi-extensions/claude-bridge/index.ts");
 
 export const EXTENSIONS = ["builtin:mcp", "builtin:codemode", CLAUDE_BRIDGE];
 
