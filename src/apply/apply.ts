@@ -26,6 +26,7 @@ export type ApplyOptions = {
   workers: number;
   firstWorker?: number;
   model?: string;
+  note?: string;
 };
 
 type Run = { url: string; options: Required<ApplyOptions>; profile: Profile; tracker: Tracker; stopwatch: Stopwatch };
@@ -39,7 +40,7 @@ export async function apply(url: string, options: ApplyOptions): Promise<Result>
   const profile = io.loadProfile();
   const run: Run = {
     url,
-    options: { ...options, firstWorker: options.firstWorker ?? 0, model: options.model ?? MODEL },
+    options: { ...options, firstWorker: options.firstWorker ?? 0, model: options.model ?? MODEL, note: options.note ?? "" },
     profile,
     tracker: new io.Tracker(profile.tracker.sheet_id),
     stopwatch: new Stopwatch(),
@@ -83,14 +84,14 @@ async function applyOnWorker(run: Run, directory: string): Promise<Result> {
 
 async function runAgentInChrome(run: Run, directory: string, runDir: string, chromePid: number,
   earlierApplications: Application[]): Promise<Result> {
-  const { url, profile, stopwatch, options: { dryRun, timeoutMinutes, model } } = run;
+  const { url, profile, stopwatch, options: { dryRun, timeoutMinutes, model, note } } = run;
   stopwatch.lap("chrome");
 
   io.connectPlaywright(directory, io.devtoolsPort(join(directory, "chrome")));
   mkdirSync(runDir, { recursive: true, mode: 0o700 });
   const prompt = join(runDir, "prompt.md");
   const capsolverKey = io.env("CAPSOLVER_API_KEY");
-  writeFileSync(prompt, renderPrompt(url, { dryRun, profile, today: new Date(), chromePid, capsolverKey, earlierApplications }));
+  writeFileSync(prompt, renderPrompt(url, { dryRun, profile, today: new Date(), chromePid, capsolverKey, earlierApplications, note }));
 
   let outcome: Result;
   try {

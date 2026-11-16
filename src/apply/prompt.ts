@@ -23,10 +23,11 @@ export type PromptOptions = {
   chromePid: number;
   capsolverKey: string | null;
   earlierApplications?: Application[];
+  note?: string;
 };
 
 export function renderPrompt(jobUrl: string, options: PromptOptions): string {
-  const { dryRun, profile, today, chromePid, capsolverKey, earlierApplications = [] } = options;
+  const { dryRun, profile, today, chromePid, capsolverKey, earlierApplications = [], note = "" } = options;
   const { tracker, ...agentProfile } = profile;
 
   return fillPlaceholders(readFileSync(TEMPLATE_PATH, "utf8"), {
@@ -39,6 +40,7 @@ export function renderPrompt(jobUrl: string, options: PromptOptions): string {
     capsolver_key_note: capsolverKey ? `\`${capsolverKey}\`` : NO_CAPSOLVER_KEY,
     banned_sites: BANNED_SITES.join(", "),
     earlier_applications: earlierApplicationsSection(earlierApplications),
+    adam_note: noteSection(note),
     profile: JSON.stringify(agentProfile, null, 2),
   });
 }
@@ -50,6 +52,15 @@ function earlierApplicationsSection(applications: Application[]): string {
 
   const listed = applications.map((app) => `  - ${app.company}: ${app.role} (${app.applied})`).join("\n");
   return `- **Adam's earlier applications to this employer**, from his tracker:\n${listed}`;
+}
+
+function noteSection(note: string): string {
+  if (!note.trim()) {
+    return "";
+  }
+
+  return `- **Adam's note for this application:** ${note.trim()}\n  Adam wrote this for this one job. Follow it: where it conflicts with the profile or the rules below, `
+    + "the note wins. It never makes a false answer acceptable.";
 }
 
 function fillPlaceholders(template: string, values: Record<string, string | number>): string {

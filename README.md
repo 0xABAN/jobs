@@ -57,7 +57,7 @@ Then try `./jobs apply --dry-run <posting url>` followed by `./jobs timeline`.
 
 | Command | What it does |
 |---|---|
-| `./jobs apply <url> ...` | Apply in parallel and print one JSON line per job. `--dry-run` never submits, but still signs in and creates accounts. |
+| `./jobs apply <url> ...` | Apply in parallel and print one JSON line per job. `--dry-run` never submits, but still signs in and creates accounts. `--note "<text>"` gives the agent Adam's instructions for these jobs, which win over the profile and the rules. |
 | `./jobs status` | List the jobs workers are on now. |
 | `./jobs timeline [run id]` | Show where a run spent its time. |
 | `./jobs browse [url]` | Open the jobs Chrome profile and print its pid. |

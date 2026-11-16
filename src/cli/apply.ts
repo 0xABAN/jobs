@@ -17,6 +17,7 @@ export async function applyCommand(args: string[]): Promise<number> {
     "first-worker": { type: "string", default: "0" },
     timeout: { type: "string", default: "60" },
     model: { type: "string", default: MODEL },
+    note: { type: "string", default: "" },
   }, Infinity);
 
   const urls = [...new Set(positionals)];
@@ -30,6 +31,7 @@ export async function applyCommand(args: string[]): Promise<number> {
     firstWorker: integer(values["first-worker"], "--first-worker"),
     timeoutMinutes: number(values.timeout, "--timeout"),
     model: values.model,
+    note: values.note,
   };
 
   stopAgentsWhenInterrupted();

@@ -8,11 +8,11 @@ import type { Application } from "../../src/tracker/tracker.ts";
 
 const URL = "https://job-boards.greenhouse.io/example/jobs/1";
 
-type RenderOptions = { dryRun?: boolean; earlierApplications?: Application[]; capsolverKey?: string | null };
+type RenderOptions = { dryRun?: boolean; earlierApplications?: Application[]; capsolverKey?: string | null; note?: string };
 
-function render({ dryRun = false, earlierApplications = [], capsolverKey = "CAP-test" }: RenderOptions = {}): string {
+function render({ dryRun = false, earlierApplications = [], capsolverKey = "CAP-test", note = "" }: RenderOptions = {}): string {
   const profile = loadProfile(join(REPO_ROOT, "profile.example.json"));
-  return renderPrompt(URL, { dryRun, profile, today: new Date(2026, 9, 4), chromePid: 4242, capsolverKey, earlierApplications });
+  return renderPrompt(URL, { dryRun, profile, today: new Date(2026, 9, 4), chromePid: 4242, capsolverKey, earlierApplications, note });
 }
 
 test("fills every placeholder", () => {
@@ -60,4 +60,11 @@ test("lists earlier applications only when the tracker has some", () => {
 
 test("dollar signs in prompt.md are written $$", () => {
   assert.ok(render().includes('"salary": "$45–$55/hour"'));
+});
+
+test("shows Adam's note for the job only when there is one", () => {
+  const prompt = render({ note: "His earliest start date is December 22, 2026." });
+
+  assert.ok(prompt.includes("**Adam's note for this application:** His earliest start date is December 22, 2026."));
+  assert.ok(!render().includes("Adam's note for this application"));
 });
