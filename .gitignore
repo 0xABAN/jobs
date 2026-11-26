@@ -7,7 +7,7 @@
 *.fdb_latexmk
 *.pdf
 !resumes/default/*.pdf
-!resumes/masters/*.pdf
+!resumes/low_level/*.pdf
 
 .env
 /.pi/mcp.json

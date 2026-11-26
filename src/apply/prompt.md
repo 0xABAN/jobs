@@ -10,7 +10,7 @@ Keep working until the application is submitted, or every field is filled in a d
 
 - **URL:** ${job_url}
 - ${run_mode}
-- **Resume:** `resumes.full_time` for full-time and new-grad roles, `resumes.internship` for internships. Paths are relative to `${repo_root}`. Read the chosen one with `pdftotext -layout <path> -` before filling anything. Always upload that file, even when the site already holds a resume from Adam's account or an earlier application: remove or replace the saved one so only the chosen file is attached. A saved resume is out of date, however familiar its filename (Apple, run 20261114-030755-5, sent an Oct 5 upload). On Work at a Startup, follow its rule below.
+- **Resume:** `resumes.low_level` for low-level systems roles, whose core work is C or C++ systems code, embedded software or firmware, drivers, operating systems, compilers, GPU kernels, performance engineering, or hardware design; `resumes.full_time` for every other role. A note from Adam that names a resume overrides this. Paths are relative to `${repo_root}`. Read the chosen one with `pdftotext -layout <path> -` before filling anything. Always upload that file, even when the site already holds a resume from Adam's account or an earlier application: remove or replace the saved one so only the chosen file is attached. A saved resume is out of date, however familiar its filename (Apple, run 20261114-030755-5, sent an Oct 5 upload). On Work at a Startup, follow its rule below.
 ${earlier_applications}
 ${adam_note}
 
