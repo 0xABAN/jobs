@@ -139,7 +139,7 @@
     \resumeSubheadingWithDetail
     {The Pennsylvania State University}{Aug 2023 -- Dec 2026}
       {B.S. in Data Science, B.S. in Statistics}{\textbf{\textit{GPA:}} 3.7}
-      {\textbf{Relevant Coursework:} Matrix Algebra, Data Structures \& Algorithms, Machine Learning, Big Data}
+      {\textbf{Relevant Coursework:} Machine Learning, Matrix Algebra, OOP with Java, Data Structures \& Algorithms, Big Data}
   \resumeSubHeadingListEnd
 
 %-----------WORK EXPERIENCE-----------
@@ -151,6 +151,8 @@
       \resumeItemListStart
         \resumeItem{Refactored \textbf{C++} infrastructure for 2 fiber-cleaning robot arms projected to save \textbf{\$28.6M/year} across \textbf{85} data centers}
         \resumeItem{Built a 19-route \textbf{HTTP} server to control robot arms remotely over \textbf{SSH}, maintaining the local control loop \textbf{under 2ms}}
+        \resumeItem{Made an LLM-as-judge classification pipeline for 6 optical fiber and transceiver labels, storing live detection data in \textbf{S3}}
+        \resumeItem{Created a self-evolving \textbf{MCP} knowledge base for agent-first development, migrating \textbf{$\sim$400} legacy docs from 2 repos}
         \resumeItem{Hardened 2 \textbf{AWS CI/CD} pipeline stages with blocking lint checks, code complexity checks, and \textbf{$\sim$40} integration tests}
       \resumeItemListEnd
     \resumeSubheading
@@ -158,7 +160,9 @@
       {AI Engineering Intern}{Remote}
       \resumeItemListStart
         \resumeItem{Shipped an LLM-powered \textbf{REST} microservice to power documentation for \textbf{3,100+} scripts, saving \textbf{\$223,000} in labor costs}
+        \resumeItem{Helped triage \textbf{$\sim$500k} criminal records spanning 20+ years with a \textbf{LangChain} agent built on \textbf{Python}, cutting review time}
         \resumeItem{Deployed serverless \textbf{Azure Function Apps} that autoscaled with incoming jobs, cutting manual review workload by \textbf{78\%}}
+        \resumeItem{Refined a file-chunking pipeline using \textbf{Llama-4} and \textbf{GPT-4o-mini} to handle 7+ large-scale internal processing requests}
       \resumeItemListEnd
     \resumeSubheading
       {Jane Street}{Jul 2023 -- Aug 2023}
@@ -173,42 +177,38 @@
 \section{\textbf{PROJECTS}}
     \resumeSubHeadingListStart
     \resumeProjectHeading
-  {\href{https://github.com/0xABAN/learning/tree/main/nand2tetris}{\textcolor{linkblue}{\underline{\faGithub\ Nand2Tetris Hardware in SystemVerilog}}}
+  {\href{https://advm.dev/}{\textcolor{linkblue}{\underline{\vercelLogo\ Retro OS Portfolio}}}
   $|$
-  \emph{SystemVerilog, Verilator}
+  \emph{TypeScript, Python, PyTorch, Unsloth, vLLM}
   }{}
   \resumeItemListStart
-    \resumeItem{Rebuilt Nand2Tetris's logic layer in \textbf{SystemVerilog}, composing \textbf{14} chips from basic gates up to 16-bit, 8-way multiplexers}
-    \resumeItem{Verified every chip in \textbf{Verilator} against testbenches built from the course's truth tables, passing all \textbf{242} reference checks}
+    \resumeItem{Fine-tuned \textbf{Qwen3-8B} via LoRA to replicate my online persona based on \textbf{81K+} processed Discord message pairs}
+    \resumeItem{Served through a self-built \$1,500 \textbf{RTX 5060 Ti 16GB} home server, managed over \textbf{SSH}, removing 90s cold starts}
+    \resumeItem{Quantized to FP8 for \textbf{vLLM} (\textbf{40\%} faster replies) and scored \textbf{97\%} LLM-judged voice match vs. 90\% for base Qwen3}
+    \resumeItem{Designed a Windows 95 desktop emulator in \textbf{Next.js} with draggable windows and interactive apps, earning \textbf{3K+} visits}
   \resumeItemListEnd
     \resumeProjectHeading
-  {\href{https://github.com/0xABAN/learning/tree/main/projects/matrix}{\textcolor{linkblue}{\underline{\faGithub\ Linear Algebra and Neural Network Library}}}
+  {\href{https://github.com/0xABAN/YADL}{\textcolor{linkblue}{\underline{\faGithub\ Agent-Driven Vision Annotation}}}
   $|$
-  \emph{C++23, CMake}
-  }{}
+  \emph{Python, WebMCP, OpenCV}
+  }
+  {}
   \resumeItemListStart
-    \resumeItem{Wrote a matrix library on \textbf{one contiguous buffer}, ordering multiply's loops (i-k-j) so inner loops read memory in order}
-    \resumeItem{Covered the library with \textbf{78} unit tests for shape errors, aliasing, const correctness, and associativity of multiply}
-    \resumeItem{Derived and coded \textbf{backpropagation} by hand for fully connected layers, passing gradients to weights, biases, and inputs}
+    \resumeItem{Turned AI agents into click-free CV data annotators through \textbf{26 WebMCP tools} to draw \& navigate an open canvas}
+    \resumeItem{Built an OpenCV vision keyboard emulator with \textbf{98.78\% F1} on 1,253 AI-labeled images after 600 MPS-accelerated epochs}
+    \resumeItem{Balanced image datasets using 8 deterministic image transforms and GPT-Image-2 in asynchronous augmentation jobs}
+    \resumeItem{Supported \textbf{16 concurrent labeling sessions} at \textless{}300 ms p95 metadata API latency using FastAPI, PostgreSQL, and \textbf{S3}}
   \resumeItemListEnd
     \resumeProjectHeading
-  {\href{https://github.com/0xABAN/learning/tree/main/projects}{\textcolor{linkblue}{\underline{\faGithub\ Systems Programming from Scratch}}}
+  {\href{https://github.com/0xABAN/learning}{\textcolor{linkblue}{\underline{\faGithub\ Low-Level Systems from Scratch}}}
   $|$
-  \emph{C, C++, TypeScript}
-  }{}
+  \emph{C++, C, SystemVerilog, Verilator}
+  }
+  {}
   \resumeItemListStart
-    \resumeItem{Stored \textbf{3,600} frames of 60 fps RGB video in \textbf{C} in one heap block, passing a \texttt{malloc}/\texttt{free}-tracking harness for leaks}
-    \resumeItem{Built a \textbf{C++} hash map with separate chaining, manual \texttt{new[]}/\texttt{delete[]} ownership, and rehashing at load factor 1}
-    \resumeItem{Parsed \textbf{HTTP/1.1} off raw \textbf{TCP} sockets and built a round-robin \textbf{load balancer} over 3 backends, returning 502 on failure}
-  \resumeItemListEnd
-    \resumeProjectHeading
-  {\href{https://advm.dev/}{\textcolor{linkblue}{\underline{\vercelLogo\ Self-Hosted LLM on a Home GPU Server}}}
-  $|$
-  \emph{Python, PyTorch, vLLM}
-  }{}
-  \resumeItemListStart
-    \resumeItem{Fine-tuned \textbf{Qwen3-8B} via LoRA on \textbf{81K+} message pairs, serving it from a self-built \textbf{RTX 5060 Ti} server over \textbf{SSH}}
-    \resumeItem{Quantized the model to \textbf{FP8} for \textbf{vLLM}, making replies \textbf{40\%} faster and removing 90s cold starts}
+    \resumeItem{Built \textbf{14} Nand2Tetris logic chips in \textbf{SystemVerilog}, up to 16-bit multiplexers, passing all \textbf{242} Verilator checks}
+    \resumeItem{Wrote a \textbf{C++23} matrix library on one contiguous buffer with a \textbf{cache-friendly} multiply, covered by \textbf{78} unit tests}
+    \resumeItem{Managed memory by hand in a \textbf{C} store for \textbf{3,600} video frames (leak-checked by a \texttt{malloc} tracker) and a \textbf{C++} hash map}
   \resumeItemListEnd
     \resumeSubHeadingListEnd
 
@@ -231,10 +231,11 @@
 \section{\textbf{TECHNICAL SKILLS}}
  \begin{itemize}[leftmargin=0.15in, label={}, itemsep=-3pt, topsep=0pt]
     \small{\item{
-     \textbf{Programming Languages:}{ C++, C, Python, SystemVerilog, TypeScript, SQL} \\
-     \textbf{Frameworks:}{ PyTorch, vLLM, OpenCV, Hugging Face, NumPy, FastAPI, Node.js, React, Next.js} \\
-     \textbf{Developer Tools:}{ Git, CMake, Verilator, Linux, Vim/Neovim, VS Code, SSH} \\
-     \textbf{Cloud/Data:}{ AWS (Lambda, S3, EC2, DynamoDB), Azure Functions, Docker, CI/CD (GitHub Actions), PostgreSQL, Redis}
+     \textbf{Programming Languages:}{ Python, C++, C, SQL, TypeScript, HTML/CSS} \\
+     \textbf{Frameworks:}{ PyTorch, OpenCV, Hugging Face, Pandas, NumPy, FastAPI, React, Node.js, Next.js, LangChain/LangGraph} \\
+     \textbf{Developer Tools:}{ Git, CMake, Linux, VS Code, Vim/Neovim, Pi, Agile/Scrum} \\
+     \textbf{Databases:}{ PostgreSQL, MySQL, SQLite, Redis, MongoDB, DynamoDB} \\
+     \textbf{Cloud/Infra:}{ AWS (Lambda, S3, EC2, Bedrock, DynamoDB), Azure Functions, Vercel, Docker, CI/CD (GitHub Actions)}
     }}
  \end{itemize}
 
